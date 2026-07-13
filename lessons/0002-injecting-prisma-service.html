@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Урок 0002: Використання PrismaService</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <h1>Урок 2: Впровадження та використання PrismaService</h1>
+  
+  <p>Я подивився у ваш код і побачив, що у вас вже чудово налаштований <code>PrismaService</code> в папці <code>src/prisma/</code>! Це ідеально. Тепер ми маємо його використати.</p>
+
+  <h2>Інжект сервісу в контролери/інші сервіси</h2>
+  <p>У NestJS ми отримуємо доступ до інших сервісів через <strong>конструктор</strong> (це і є Dependency Injection). Відкрийте ваш файл <code>src/runs/runs.service.ts</code>.</p>
+  
+  <p>Зараз він виглядає як заглушка. Давайте додамо туди <code>PrismaService</code>:</p>
+
+<pre><code>import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { CreateRunDto } from './dto/create-run.dto';
+
+@Injectable()
+export class RunsService {
+  // 1. Інжектимо PrismaService через конструктор
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findAll() {
+    // 2. Використовуємо згенеровані методи Prisma Client!
+    return this.prisma.run.findMany();
+  }
+}
+</code></pre>
+
+  <p>Завдяки тому, що Prisma генерує типи безпосередньо з вашої <code>schema.prisma</code>, коли ви наберете <code>this.prisma.run.</code>, ваш редактор підкаже вам всі доступні методи (<code>findMany</code>, <code>create</code>, <code>update</code> тощо) і типи даних, які вони повертають.</p>
+  
+  <p class="citation"><a href="https://www.prisma.io/docs/concepts/components/prisma-client/crud" target="_blank">Джерело: Документація Prisma CRUD</a></p>
+
+  <div class="quiz-container">
+    <div class="quiz-question">Перевірка знань: Як NestJS розуміє, який саме сервіс потрібно передати в конструктор?</div>
+    <div class="quiz-options" id="quiz-options">
+      <button class="quiz-btn" onclick="checkAnswer(this, true)">Він використовує типи TypeScript (PrismaService), щоб знайти правильний провайдер.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Він шукає змінну з іменем "prisma" у всіх модулях.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Ми повинні явно викликати new PrismaService() в модулі.</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <h2>Ваше практичне завдання:</h2>
+  <p>Перейдіть у файл <code>src/runs/runs.service.ts</code> (я бачу, він у вас відкритий) та:</p>
+  <ol>
+    <li>Додайте <code>PrismaService</code> в конструктор.</li>
+    <li>Перепишіть метод <code>findAll()</code> так, щоб він повертав список усіх забігів з бази (через <code>this.prisma.run.findMany()</code>).</li>
+    <li>Змініть метод <code>findOne(id: number)</code>, щоб він шукав забіг за ID: <code>this.prisma.run.findUnique({ where: { id } })</code>.</li>
+  </ol>
+  
+  <p>Коли ви це зробите і збережете файл, напишіть мені в чат "готово", і ми перевіримо, як воно працює!</p>
+
+  <script>
+    function checkAnswer(btn, isCorrect) {
+      const options = document.querySelectorAll('.quiz-btn');
+      options.forEach(opt => {
+        opt.disabled = true;
+        opt.classList.remove('correct', 'incorrect');
+      });
+      
+      if (isCorrect) {
+        btn.classList.add('correct');
+        document.getElementById('feedback').innerText = "Точно! У NestJS декоратори типу @Injectable() у поєднанні з типізацією TS дозволяють IoC-контейнеру автоматично 'підкладати' правильні інстанси.";
+        document.getElementById('feedback').style.color = '#155724';
+      } else {
+        btn.classList.add('incorrect');
+        document.getElementById('feedback').innerText = "Не зовсім. Спробуйте ще раз! Згадайте, навіщо нам взагалі потрібен TypeScript у NestJS для Dependency Injection.";
+        document.getElementById('feedback').style.color = '#721c24';
+      }
+    }
+  </script>
+</body>
+</html>

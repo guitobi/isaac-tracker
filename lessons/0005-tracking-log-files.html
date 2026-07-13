@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Урок 0005: Читання лог-файлів у реальному часі</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <h1>Урок 5: Фонові процеси та читання файлів (Tailing)</h1>
+  
+  <p>Я знайшов ваш <code>log.txt</code>! Він знаходиться за адресою: <code>C:\Users\Administrator\Documents\My Games\Binding of Isaac Repentance\log.txt</code>.</p>
+  <p>Зараз він містить лише інформацію про запуск і вимкнення гри, але коли ви почнете грати, туди посиплються рядки типу <code>RNG Start Seed: ...</code>.</p>
+
+  <h2>Як читати файл, що постійно оновлюється?</h2>
+  <p>В NodeJS ми можемо прочитати весь файл одразу через <code>fs.readFileSync</code>. Але гра дописує лог <strong>постійно</strong>. Нам потрібен механізм, який називається <em>tailing</em> (від команди <code>tail -f</code> в Linux). Він "слухає" кінець файлу і реагує тільки на нові рядки.</p>
+  
+  <p>Найпростіший спосіб це зробити в Node.js — використати готову бібліотеку <a href="https://www.npmjs.com/package/tail" target="_blank">tail</a>.</p>
+
+  <h2>Інтеграція в NestJS</h2>
+  <p>Ми створимо окремий <code>LogReaderService</code> (або додамо логіку у ваш <code>RunsService</code>, але краще дотримуватися принципу єдиної відповідальності). Ми використаємо інтерфейс <code>OnModuleInit</code>, щоб почати слухати файл одразу при запуску бекенду.</p>
+
+<pre><code>import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Tail } from 'tail';
+
+@Injectable()
+export class LogReaderService implements OnModuleInit {
+  onModuleInit() {
+    const logPath = 'C:/Users/Administrator/Documents/My Games/Binding of Isaac Repentance/log.txt';
+    const tail = new Tail(logPath);
+
+    tail.on('line', (data) => {
+      console.log("Новий рядок з гри:", data);
+      // Тут ми будемо парсити регулярними виразами!
+    });
+
+    tail.on('error', (error) => {
+      console.error('Помилка читання логу:', error);
+    });
+  }
+}
+</code></pre>
+
+  <div class="quiz-container">
+    <div class="quiz-question">Перевірка знань: Чому краще використовувати бібліотеку типу `tail`, а не просто ставити `setInterval`, який кожну секунду читає файл за допомогою `fs.readFile`?</div>
+    <div class="quiz-options" id="quiz-options">
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Тому що fs.readFile може викликати збій операційної системи Windows.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, true)">Тому що читання всього файлу щосекунди споживає занадто багато пам'яті/ЦП, тоді як tail просто чекає на події файлової системи про нові байти в кінці файлу.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Тому що setInterval заборонений в NestJS.</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <h2>Ваше практичне завдання:</h2>
+  <ol>
+    <li>У вашому терміналі встановіть бібліотеку та її типи:<br> <code>pnpm install tail</code> <br> <code>pnpm install -D @types/tail</code></li>
+    <li>Згенеруйте новий сервіс у Nest: <code>pnpm nest g service logReader</code> (він створиться в папці <code>src/log-reader</code> і автоматично додасться до вашого <code>AppModule</code>).</li>
+    <li>Вставте код, наведений вище, у ваш новий <code>log-reader.service.ts</code>.</li>
+  </ol>
+  
+  <p>Коли зробите, напишіть "готово", і ми запустимо ваш бекенд, увімкнемо гру і подивимось на магію в консолі!</p>
+
+  <script>
+    function checkAnswer(btn, isCorrect) {
+      const options = document.querySelectorAll('.quiz-btn');
+      options.forEach(opt => {
+        opt.disabled = true;
+        opt.classList.remove('correct', 'incorrect');
+      });
+      
+      if (isCorrect) {
+        btn.classList.add('correct');
+        document.getElementById('feedback').innerText = "Саме так! Читати гігабайтний лог щосекунди з нуля — дуже неефективно. Tailing працює тільки з дельтою (новими даними).";
+        document.getElementById('feedback').style.color = '#155724';
+      } else {
+        btn.classList.add('incorrect');
+        document.getElementById('feedback').innerText = "Не зовсім. Подумайте про продуктивність (I/O).";
+        document.getElementById('feedback').style.color = '#721c24';
+      }
+    }
+  </script>
+</body>
+</html>

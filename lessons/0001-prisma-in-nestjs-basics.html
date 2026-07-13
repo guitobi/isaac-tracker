@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Урок 0001: Основи Prisma в NestJS</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <h1>Урок 1: Архітектура Prisma в NestJS</h1>
+  
+  <p>Привіт! Оскільки ви вже є fullstack розробником, ми пропустимо пояснення того, що таке ORM. Давайте одразу сфокусуємось на тому, як NestJS та Prisma "спілкуються" між собою.</p>
+
+  <h2>Проблема: Інстанс Prisma Client</h2>
+  <p>Prisma генерує клас <code>PrismaClient</code>. Щоб працювати з базою даних, нам потрібен його екземпляр. Але NestJS працює на базі <strong>Dependency Injection (Впровадження залежностей)</strong>. Якщо ми будемо просто робити <code>new PrismaClient()</code> у кожному файлі, ми втратимо контроль над пулом з'єднань і порушимо архітектуру Nest.</p>
+
+  <h2>Рішення: PrismaService</h2>
+  <p>Щоб інтегрувати Prisma "по-нестівськи", ми створюємо сервіс (провайдер), який розширює базовий клієнт. Цей сервіс потім можна інжектити в будь-який інший сервіс або контролер (наприклад, у ваш <code>RunsService</code>).</p>
+
+<pre><code>import { Injectable, OnModuleInit } from '@nestjs/common';
+import { PrismaClient } from '@prisma/client';
+
+@Injectable()
+export class PrismaService extends PrismaClient implements OnModuleInit {
+  async onModuleInit() {
+    // Встановлюємо з'єднання з БД при старті додатка
+    await this.$connect();
+  }
+}
+</code></pre>
+
+  <p class="citation"><a href="https://docs.nestjs.com/recipes/prisma#use-prisma-client-in-your-nestjs-services" target="_blank">Джерело: Офіційна документація NestJS (Prisma Recipes)</a></p>
+
+  <p>Цей код робить три речі:</p>
+  <ol>
+    <li>Декоратор <code>@Injectable()</code> дозволяє інжектити цей клас в інші частини додатка.</li>
+    <li>Розширення (<code>extends</code>) від <code>PrismaClient</code> означає, що <code>PrismaService</code> отримує всі методи для роботи з БД (наприклад, <code>this.user.findMany()</code>).</li>
+    <li>Реалізація <code>OnModuleInit</code> дозволяє підключитися до бази даних (<code>$connect()</code>) безпосередньо під час ініціалізації модуля NestJS, що є найкращою практикою.</li>
+  </ol>
+
+  <div class="quiz-container">
+    <div class="quiz-question">Перевірка знань: Чому PrismaService імплементує OnModuleInit?</div>
+    <div class="quiz-options" id="quiz-options">
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Щоб приховати PrismaClient від інших модулів.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, true)">Щоб підключитися до бази даних під час запуску.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Щоб згенерувати типізацію для бази даних.</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <p><em>Завдання: якщо у вас є запитання або щось незрозуміло — спитайте агента в чаті! Коли будете готові застосувати це у своєму коді, просто скажіть.</em></p>
+
+  <script>
+    function checkAnswer(btn, isCorrect) {
+      const options = document.querySelectorAll('.quiz-btn');
+      options.forEach(opt => {
+        opt.disabled = true;
+        opt.classList.remove('correct', 'incorrect');
+      });
+      
+      if (isCorrect) {
+        btn.classList.add('correct');
+        document.getElementById('feedback').innerText = "Правильно! Це гарантує, що додаток не почне приймати запити до того, як встановить з'єднання з БД.";
+        document.getElementById('feedback').style.color = '#155724';
+      } else {
+        btn.classList.add('incorrect');
+        document.getElementById('feedback').innerText = "Не зовсім. Спробуйте ще раз, перезавантаживши сторінку. Зверніть увагу на коментар всередині методу onModuleInit.";
+        document.getElementById('feedback').style.color = '#721c24';
+      }
+    }
+  </script>
+</body>
+</html>

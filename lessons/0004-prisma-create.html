@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Урок 0004: Створення записів</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <h1>Урок 4: Додавання даних (Метод create)</h1>
+  
+  <p>Ми навчилися читати дані, тепер давайте навчимося їх створювати.</p>
+
+  <h2>Об'єкт data</h2>
+  <p>Щоб створити запис, ми використовуємо метод <code>create()</code>. У нього ми завжди передаємо об'єкт із властивістю <code>data</code>, яка містить усі необхідні поля нашої моделі.</p>
+
+<pre><code>async create(createRunDto: CreateRunDto) {
+  return this.prisma.run.create({
+    data: {
+      seed: createRunDto.seed,
+      isVictory: createRunDto.isVictory,
+      duration: createRunDto.duration,
+      userId: createRunDto.userId,
+      characterId: createRunDto.characterId,
+    }
+  });
+}
+</code></pre>
+
+  <h2>Магія DTO та TypeScript</h2>
+  <p>Оскільки ви вже створили <code>CreateRunDto</code> і він ідеально збігається з полями, які очікує Prisma (а саме — містить ідентифікатори <code>userId</code> та <code>characterId</code>), ми можемо передати DTO напряму!</p>
+
+<pre><code>async create(createRunDto: CreateRunDto) {
+  return this.prisma.run.create({
+    data: createRunDto,
+  });
+}
+</code></pre>
+  <p>Це працює, тому що Prisma розуміє: якщо ви передаєте <code>userId</code> (число), це означає, що ви хочете просто записати зовнішній ключ (Foreign Key). Це найпростіший і найшвидший спосіб.</p>
+
+  <h2>Альтернатива: Вкладене створення (Nested Writes)</h2>
+  <p>Коли ви будуватимете складніші API, можливо, ви захочете <strong>одночасно</strong> створити нового Користувача і його Забіг в одному запиті. Prisma вміє і це! Це робиться через спеціальне слово <code>create</code> або <code>connect</code> (якщо запис вже існує) замість передачі ID безпосередньо:</p>
+<pre><code>// Приклад (не для вашого поточного DTO, просто для розуміння):
+this.prisma.run.create({
+  data: {
+    duration: 1200,
+    isVictory: true,
+    user: {
+      connect: { id: 1 } // Або create: { username: "Новий Гравець" }
+    }
+  }
+});
+</code></pre>
+
+  <p class="citation"><a href="https://www.prisma.io/docs/concepts/components/prisma-client/relation-queries#nested-writes" target="_blank">Джерело: Документація Prisma Nested Writes</a></p>
+
+  <div class="quiz-container">
+    <div class="quiz-question">Перевірка знань: Чому ми обгортаємо поля в об'єкт `data: { ... }`, а не передаємо їх одразу в `create(...)`?</div>
+    <div class="quiz-options" id="quiz-options">
+      <button class="quiz-btn" onclick="checkAnswer(this, true)">Тому що окрім `data`, метод create може приймати ще й `include` або `select` для повернення зв'язків.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Це вимога бази даних PostgreSQL.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Щоб TypeScript міг відрізнити метод create від методу update.</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <h2>Ваше практичне завдання:</h2>
+  <ol>
+    <li>Оновіть метод <code>create()</code> у файлі <code>runs.service.ts</code> так, щоб він зберігав дані в базу за допомогою <code>this.prisma.run.create()</code>.</li>
+    <li>Передайте ваш об'єкт <code>createRunDto</code> прямо в поле <code>data</code>.</li>
+  </ol>
+  
+  <p>Після збереження файлу напишіть "готово", і ми обговоримо останні штрихи CRUD!</p>
+
+  <script>
+    function checkAnswer(btn, isCorrect) {
+      const options = document.querySelectorAll('.quiz-btn');
+      options.forEach(opt => {
+        opt.disabled = true;
+        opt.classList.remove('correct', 'incorrect');
+      });
+      
+      if (isCorrect) {
+        btn.classList.add('correct');
+        document.getElementById('feedback').innerText = "Правильно! У Prisma всі CRUD методи приймають конфігураційний об'єкт. Це дозволяє в тому ж запиті, що створює запис, одразу підвантажити його зв'язки (наприклад, { data: {...}, include: { user: true } }).";
+        document.getElementById('feedback').style.color = '#155724';
+      } else {
+        btn.classList.add('incorrect');
+        document.getElementById('feedback').innerText = "Спробуйте ще раз! Подумайте про те, що ми вчили в попередньому уроці. Чи можемо ми захотіти повернути створений об'єкт ВРАЗУМ з його зв'язками?";
+        document.getElementById('feedback').style.color = '#721c24';
+      }
+    }
+  </script>
+</body>
+</html>
