@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Урок 0008: Оновлення забігу та відстеження результату</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <h1>Урок 8: Оновлення забігу (Update) та відстеження результату</h1>
+  
+  <p>Вітаю з продовженням! Минулого разу ми зупинилися на тому, що ваш застосунок успішно навчився розпізнавати старт гри та зберігати новий запис про забіг (Run) у базу даних. Це крутий етап!</p>
+
+  <p>Але забіг колись закінчується: або перемогою, або поразкою (смертю). І нам потрібно оновити створений запис у базі даних, щоб зафіксувати <code>isVictory</code> та підрахувати <code>duration</code> (тривалість).</p>
+
+  <h2>1. Збереження ID забігу та часу старту</h2>
+  <p>Щоб оновити запис у БД, нам потрібно знати його <code>id</code>. Метод <code>create</code> в Prisma повертає створений об'єкт. Отже, у нашому <code>LogReaderService</code> ми можемо отримати цей ID у блоці <code>.then((run) => { ... })</code> та зберегти його у змінну класу (наприклад, <code>currentRunId</code>).</p>
+  
+  <p>Також, щоб підрахувати тривалість, нам потрібно зберегти час старту (наприклад, використовуючи <code>Date.now()</code>) у змінну <code>currentRunStartTime</code>.</p>
+
+  <h2>2. Реалізація методу update</h2>
+  <p>Зараз у <code>RunsService</code> (файл <code>runs.service.ts</code>) метод <code>update</code> просто повертає рядок. Вам потрібно замінити його на виклик Prisma. Для оновлення запису використовується <code>this.prisma.run.update()</code>, якому треба передати об'єкт з властивостями <code>where: { id }</code> та <code>data: updateRunDto</code>.</p>
+
+  <h2>3. Пошук події "Game Over"</h2>
+  <p>Ми не знаємо точно, як гра логує смерть персонажа або перемогу. <strong>Це завдання для вас!</strong></p>
+
+  <div class="quiz-container">
+    <div class="quiz-question">Перевірка знань: Як найкраще підрахувати тривалість забігу в секундах, якщо у нас є `startTime = Date.now()` та `endTime = Date.now()`?</div>
+    <div class="quiz-options" id="quiz-options">
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">endTime - startTime</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, true)">Math.floor((endTime - startTime) / 1000)</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Math.floor((endTime - startTime) * 1000)</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <h2>Ваше практичне завдання:</h2>
+  <p><strong>Ніякого копіпасту, лише ваші власні навички:</strong></p>
+  <ol>
+    <li>Оновіть <code>src/runs/runs.service.ts</code>: реалізуйте метод <code>update(id: number, updateRunDto: UpdateRunDto)</code> використовуючи Prisma.</li>
+    <li>В <code>src/log-reader/log-reader.service.ts</code> додайте дві нові змінні класу: <code>currentRunId: number | null = null</code> та <code>currentRunStartTime: number | null = null</code>.</li>
+    <li>Коли забіг успішно зберігається (в <code>.then(run => ...)</code>), збережіть <code>run.id</code> у <code>currentRunId</code> і поточний час у <code>currentRunStartTime</code>. <em>Підказка: Переконайтесь, що ви приймаєте параметр <code>run</code> у колбеку <code>then</code>.</em></li>
+    <li><strong>Реверс-інжиніринг:</strong> Запустіть гру, почніть новий забіг і спеціально помріть. Подивіться в консоль терміналу (де виводяться всі рядки логу) і знайдіть рядок, який з'являється при смерті (наприклад, він може містити слово "Game Over" або "Death").</li>
+    <li>Додайте у парсер перевірку на цей рядок (можна через <code>data.includes('Ваш знайдений рядок')</code>). Коли він зустрічається:
+      <ul>
+        <li>Переконайтесь, що <code>currentRunId</code> існує.</li>
+        <li>Підрахуйте тривалість у секундах.</li>
+        <li>Викличте <code>this.runsService.update(this.currentRunId, { isVictory: false, duration: ... })</code>.</li>
+        <li>Після оновлення обнуліть <code>currentRunId</code> та <code>currentRunStartTime</code>.</li>
+      </ul>
+    </li>
+  </ol>
+  
+  <p>Після виконання завдання спробуйте зіграти забіг, померти, і перевірити базу даних, чи оновився ваш запис (з'явилась тривалість). Напишіть "готово", якщо вийшло!</p>
+
+  <script>
+    function checkAnswer(btn, isCorrect) {
+      const options = document.querySelectorAll('.quiz-btn');
+      options.forEach(opt => {
+        opt.disabled = true;
+        opt.classList.remove('correct', 'incorrect');
+      });
+      
+      if (isCorrect) {
+        btn.classList.add('correct');
+        document.getElementById('feedback').innerText = "Правильно! Date.now() повертає мілісекунди, тому потрібно розділити на 1000 та відкинути дрібну частину.";
+        document.getElementById('feedback').style.color = '#155724';
+      } else {
+        btn.classList.add('incorrect');
+        document.getElementById('feedback').innerText = "Неправильно. Згадайте, що Date.now() працює в мілісекундах.";
+        document.getElementById('feedback').style.color = '#721c24';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -14,6 +14,13 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
+  // Створюємо дефолтного користувача
+  await prisma.user.upsert({
+    where: { username: 'Player' },
+    update: {},
+    create: { username: 'Player' },
+  });
+
   const characters = [
     { name: 'Isaac' },
     { name: 'Magdalene' },

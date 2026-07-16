@@ -25,7 +25,10 @@ export class RunsService {
   }
 
   update(id: number, updateRunDto: UpdateRunDto) {
-    return `This action updates a #${id} run`;
+    return this.prisma.run.update({
+      where: { id },
+      data: updateRunDto,
+    });
   }
 
   remove(id: number) {

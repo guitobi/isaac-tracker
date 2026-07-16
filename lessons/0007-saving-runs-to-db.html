@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Урок 0007: Збереження забігів у базу даних</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <h1>Урок 7: Інтеграція сервісів та збереження забігу</h1>
+  
+  <p>Вітаю! Ви успішно навчилися парсити сід та персонажа з лог-файлу гри. Тепер прийшов час об'єднати це з базою даних.</p>
+
+  <h2>1. Зв'язок між сервісами (Dependency Injection)</h2>
+  <p>Щоб зберегти забіг, нашому <code>LogReaderService</code> потрібно викликати метод <code>create()</code> з <code>RunsService</code>. Для цього ми маємо впровадити <code>RunsService</code> через конструктор:</p>
+
+<pre><code>constructor(private readonly runsService: RunsService) {}</code></pre>
+
+  <p><strong>Важливо:</strong> Оскільки ми імпортуємо сервіс з іншого модуля, нам потрібно переконатися, що <code>RunsModule</code> експортує свій <code>RunsService</code>, а <code>AppModule</code> (або модуль лог-рідера) імпортує <code>RunsModule</code>. Але оскільки ми зареєстрували <code>LogReaderService</code> прямо в <code>AppModule</code> в полі <code>providers</code>, а <code>RunsModule</code> імпортований в <code>imports</code>, нам достатньо просто додати <code>exports: [RunsService]</code> у <code>RunsModule</code>.</p>
+
+  <h2>2. Збереження забігу при старті</h2>
+  <p>Оскільки гра логує сід та ініціалізацію персонажа в різних рядках (але майже одночасно), нам потрібно зберегти ці дані в пам'яті сервісу, поки ми не отримаємо обидва значення.</p>
+
+  <p>Для цього ми можемо створити локальні змінні класу <code>LogReaderService</code>:</p>
+<pre><code>private currentSeed: string | null = null;</code></pre>
+
+  <p>Коли ми знаходимо сід — записуємо його в <code>currentSeed</code>. А коли гра повідомляє про ініціалізацію персонажа (Variant), ми беремо цей сід, мапимо варіант персонажа на ID в БД і викликаємо <code>runsService.create()</code>!</p>
+
+  <h3>Мапінг персонажів:</h3>
+  <p>У базі даних у нас є персонажі, створені сід-скриптом (дефолтний порядок ID: 1 - Isaac, 2 - Magdalene, 3 - Cain, 4 - Judas). В грі вони мають Variant ID (0 - Isaac, 1 - Magdalene, 2 - Cain, 3 - Judas). Ми можемо зробити простий мапінг:</p>
+<pre><code>const characterMap: Record<number, number> = {
+  0: 1, // Variant 0 -> Character ID 1 (Isaac)
+  1: 2, // Variant 1 -> Character ID 2 (Magdalene)
+  2: 3, // Variant 2 -> Character ID 3 (Cain)
+  3: 4, // Variant 3 -> Character ID 4 (Judas)
+};</code></pre>
+
+  <h3>Створення запису:</h3>
+  <p>Оскільки в нашій схемі <code>Run</code> поля <code>isVictory</code> (Boolean) та <code>duration</code> (Int) є обов'язковими, при старті забігу ми можемо передати дефолтні значення:</p>
+<pre><code>this.runsService.create({
+  seed: seed,
+  characterId: characterId,
+  userId: 1, // ID нашого дефолтного користувача Player
+  isVictory: false,
+  duration: 0,
+});</code></pre>
+
+  <div class="quiz-container">
+    <div class="quiz-question">Перевірка знань: Що потрібно зробити в `RunsModule` (`runs.module.ts`), щоб його сервіс `RunsService` став доступним для інших модулів/провайдерів в `AppModule`?</div>
+    <div class="quiz-options" id="quiz-options">
+      <button class="quiz-btn" onclick="checkAnswer(this, true)">Додати `RunsService` у масив `exports` декоратора `@Module` в `runs.module.ts`.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Нічого, у NestJS всі сервіси за замовчуванням є глобальними.</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Додати `RunsService` у масив `imports` модуля `AppModule`.</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <h2>Ваше практичне завдання:</h2>
+  <p><strong>Пишіть код самостійно!</strong></p>
+  <ol>
+    <li>У файлі <code>src/runs/runs.module.ts</code> додайте <code>exports: [RunsService]</code> у декоратор модуля, щоб інші могли ним користуватися.</li>
+    <li>У файлі <code>src/log-reader/log-reader.service.ts</code>:
+      <ul>
+        <li>Додайте конструктор та впровадьте <code>RunsService</code>.</li>
+        <li>Створіть приватну змінну класу <code>currentSeed: string | null = null;</code> для тимчасового зберігання сіду в пам'яті.</li>
+        <li>Коли знаходите сід — зберігайте його в <code>this.currentSeed</code>.</li>
+        <li>Коли знаходите персонажа (Variant) — отримайте збережений сід, знайдіть відповідний `characterId` за допомогою `characterMap` і викличте <code>this.runsService.create()</code>. Після створення забігу не забудьте обнулити <code>this.currentSeed = null;</code>.</li>
+      </ul>
+    </li>
+  </ol>
+  
+  <p>Коли оновите код — запустіть гру, почніть новий раунд. Перевірте консоль на наявність помилок, а потім перевірте вашу базу даних (або зробіть GET запит на <code>http://localhost:3000/runs</code>), щоб переконатися, що раунд зберігся! Напишіть "готово", коли все вийде.</p>
+
+  <script>
+    function checkAnswer(btn, isCorrect) {
+      const options = document.querySelectorAll('.quiz-btn');
+      options.forEach(opt => {
+        opt.disabled = true;
+        opt.classList.remove('correct', 'incorrect');
+      });
+      
+      if (isCorrect) {
+        btn.classList.add('correct');
+        document.getElementById('feedback').innerText = "Правильно! Щоб сервіс модуля став видимим ззовні, модуль має явно його експортувати (exports).";
+        document.getElementById('feedback').style.color = '#155724';
+      } else {
+        btn.classList.add('incorrect');
+        document.getElementById('feedback').innerText = "Неправильно. Пригадайте концепцію інкапсуляції NestJS.";
+        document.getElementById('feedback').style.color = '#721c24';
+      }
+    }
+  </script>
+</body>
+</html>

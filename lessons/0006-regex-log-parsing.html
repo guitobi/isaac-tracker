@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Урок 0006: Регулярні вирази для парсингу ігрових подій</title>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body>
+  <h1>Урок 6: Регулярні вирази та парсинг подій</h1>
+  
+  <p>Чудово! Лог-рідер працює і виводить сирі рядки з гри. Тепер наша задача — перетворити цей потік тексту на структуровані дані, які ми згодом зможемо зберегти в базу через Prisma.</p>
+
+  <h2>1. Визначення ключових рядків</h2>
+  <p>У логах Isaac нас цікавлять конкретні події. Для початку навчимося розпізнавати старт гри та сід:</p>
+  <ul>
+    <li>
+      <strong>Рядок сіду:</strong> <code>[INFO] - RNG Start Seed: 6CGD EXXV (4016262579) [New, 1]</code>
+    </li>
+    <li>
+      <strong>Рядок персонажа:</strong> <code>[INFO] - [Frame: 0] Initialized player with Variant 0 and Subtype 0</code>
+    </li>
+  </ul>
+
+  <h2>2. Складання Регулярних Виразів (RegEx)</h2>
+  <p>Для пошуку та вилучення даних ми використаємо регулярні вирази в JavaScript.</p>
+  
+  <h3>Парсинг сіду:</h3>
+  <p>Сід в Isaac складається з 8 символів (літери та цифри), розділених пробілом посередині (наприклад, <code>6CGD EXXV</code>).</p>
+  <pre><code>const seedRegex = /RNG Start Seed: ([A-Z0-9]{4} [A-Z0-9]{4})/;</code></pre>
+  <p>Тут дужки <code>([A-Z0-9]{4} [A-Z0-9]{4})</code> створюють <strong>групу захоплення (capturing group)</strong>. За допомогою методу <code>line.match(seedRegex)</code> ми зможемо дістати саме значення сіду.</p>
+
+  <h3>Парсинг персонажа:</h3>
+  <p>Для визначення персонажа нам потрібні числа після <code>Variant</code> та <code>Subtype</code>:</p>
+  <pre><code>const playerRegex = /Initialized player with Variant (\d+) and Subtype (\d+)/;</code></pre>
+  <p>Тут <code>(\d+)</code> захоплює одне або більше цифрових значень для варіанту та субтипу.</p>
+
+  <h2>3. Як отримати значення в JS/TS?</h2>
+  <p>Метод <code>String.prototype.match()</code> повертає масив, де першим елементом (індекс 0) йде весь знайдений рядок, а наступними (індекс 1, 2 і т.д.) — значення з груп захоплення:</p>
+  <pre><code>const match = line.match(seedRegex);
+if (match) {
+  const seed = match[1]; // "6CGD EXXV"
+  console.log(`Знайдено сід: ${seed}`);
+}</code></pre>
+
+  <div class="quiz-container">
+    <div class="quiz-question">Перевірка знань: Що міститиме змінна `match[2]` після виклику `line.match(playerRegex)` для рядка: "Initialized player with Variant 0 and Subtype 3"?</div>
+    <div class="quiz-options" id="quiz-options">
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">"0" (значення Variant)</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, true)">"3" (значення Subtype, оскільки це друга група захоплення)</button>
+      <button class="quiz-btn" onclick="checkAnswer(this, false)">Ввесь знайдений рядок</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  </div>
+
+  <h2>Ваше практичне завдання:</h2>
+  <p><strong>Важливо: пишіть код самостійно, без копіювання.</strong></p>
+  <ol>
+    <li>У файлі <code>log-reader.service.ts</code> всередині методу <code>tail.on('line')</code> додайте перевірку рядка двома регулярними виразами (для сіду та для персонажа).</li>
+    <li>Якщо знайшли сід — виводьте в консоль: <code>"🌱 Знайдено сід: {seed}"</code>.</li>
+    <li>Якщо знайшли ініціалізацію гравця — виводьте: <code>"👤 Ініціалізовано гравця. Варіант: {variant}, Субтип: {subtype}"</code>.</li>
+  </ol>
+  
+  <p>Коли оновите код — запустіть гру, почніть забіг і переконайтеся в консолі, що виводяться лише ці повідомлення. Після цього пишіть "готово"!</p>
+
+  <script>
+    function checkAnswer(btn, isCorrect) {
+      const options = document.querySelectorAll('.quiz-btn');
+      options.forEach(opt => {
+        opt.disabled = true;
+        opt.classList.remove('correct', 'incorrect');
+      });
+      
+      if (isCorrect) {
+        btn.classList.add('correct');
+        document.getElementById('feedback').innerText = "Правильно! match[0] — це весь збіг, match[1] — перша група (Variant), match[2] — друга група (Subtype).";
+        document.getElementById('feedback').style.color = '#155724';
+      } else {
+        btn.classList.add('incorrect');
+        document.getElementById('feedback').innerText = "Неправильно. Згадайте порядок груп у виразі: Variant — перша група (\\d+), Subtype — друга группа (\\d+).";
+        document.getElementById('feedback').style.color = '#721c24';
+      }
+    }
+  </script>
+</body>
+</html>
