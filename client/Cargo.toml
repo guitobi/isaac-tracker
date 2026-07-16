@@ -4,3 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+dotenvy = "0.15.7"
+linemux = "0.3.0"
+regex = "1.13.1"
+reqwest = { version = "0.13.4", features = ["json"] }
+serde_json = "1.0.150"
+tokio = { version = "1.52.3", features = ["full"] }
