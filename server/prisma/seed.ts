@@ -14,7 +14,6 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  // Створюємо дефолтного користувача
   await prisma.user.upsert({
     where: { username: 'Player' },
     update: {},
@@ -22,16 +21,23 @@ async function main() {
   });
 
   const characters = [
-    { name: 'Isaac' },
-    { name: 'Magdalene' },
-    { name: 'Cain' },
-    { name: 'Judas' },
-    // додавай сюди інших, скільки хочеш
+    { id: 0, name: 'Isaac' },
+    { id: 1, name: 'Magdalene' },
+    { id: 2, name: 'Cain' },
+    { id: 3, name: 'Judas' },
+    { id: 4, name: '??? (Blue Baby)' },
+    { id: 5, name: 'Eve' },
+    { id: 6, name: 'Samson' },
+    { id: 7, name: 'Azazel' },
+    { id: 8, name: 'Lazarus' },
+    { id: 9, name: 'Eden' },
+    { id: 10, name: 'The Lost' },
+    // ... можеш додати інших пізніше
   ];
 
   for (const char of characters) {
     await prisma.character.upsert({
-      where: { name: char.name },
+      where: { id: char.id },
       update: {},
       create: char,
     });

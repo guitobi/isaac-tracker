@@ -19,7 +19,7 @@ model User {
 }
 
 model Character {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id 
   name      String  @unique
   isTainted Boolean @default(false)
   runs      Run[]
@@ -29,9 +29,17 @@ model Run {
   id          Int     @id @default(autoincrement())
   seed        String?
   isVictory   Boolean
+  items       Int[]
   duration    Int  
   userId      Int
   user        User      @relation(fields: [userId], references: [id])
   characterId Int
   character   Character @relation(fields: [characterId], references: [id])
+}
+
+model Item {
+  id          Int    @id
+  name        String
+  description String
+  image       String
 }

@@ -11,13 +11,25 @@ export class RunsService {
     return this.prisma.run.create({ data: createRunDto });
   }
 
-  findAll() {
-    return this.prisma.run.findMany({
+  async findAll() {
+    const runs = await this.prisma.run.findMany({
       include: {
         user: true,
         character: true,
       },
+      orderBy: { id: 'desc' },
     });
+
+    const allItemIds = [...new Set(runs.flatMap((r) => r.items))];
+    const itemsData = await this.prisma.item.findMany({
+      where: { id: { in: allItemIds } },
+    });
+    const itemsMap = new Map(itemsData.map((i) => [i.id, i]));
+
+    return runs.map((run) => ({
+      ...run,
+      itemObjects: run.items.map((id) => itemsMap.get(id)).filter(Boolean),
+    }));
   }
 
   findOne(id: number) {

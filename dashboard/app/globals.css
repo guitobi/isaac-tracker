@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  
+  --color-bg-dark: #0f111a;
+  --color-bg-panel: rgba(255, 255, 255, 0.03);
+  --color-glow-primary: #e91e63;
+  --color-glow-secondary: #673ab7;
+}
+
+body {
+  background-color: var(--color-bg-dark);
+  background-image: radial-gradient(circle at top left, #1f2235, #0f111a);
+  background-attachment: fixed;
+  color: white;
+}
+
+.glow-blob {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.4;
+  z-index: -1;
+  animation: float 20s infinite ease-in-out alternate;
+}
+.glow-blob.pink {
+  top: -10%; left: -10%;
+  width: 600px; height: 600px;
+  background: var(--color-glow-primary);
+}
+.glow-blob.purple {
+  bottom: -10%; right: -10%;
+  width: 500px; height: 500px;
+  background: var(--color-glow-secondary);
+  animation-delay: -5s;
+}
+
+@keyframes float {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(100px, 50px) scale(1.1); }
+  100% { transform: translate(-50px, 100px) scale(0.9); }
+}
