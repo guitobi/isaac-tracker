@@ -7,9 +7,10 @@ import { UsersController } from './users/users.controller';
 import { CharactersModule } from './characters/characters.module';
 import { RunsModule } from './runs/runs.module';
 import { LogReaderService } from './log-reader/log-reader.service';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [PrismaModule, CharactersModule, RunsModule],
+  imports: [PrismaModule, CharactersModule, RunsModule, AuthModule],
   controllers: [AppController, UsersController],
   providers: [AppService, UsersService, LogReaderService],
 })

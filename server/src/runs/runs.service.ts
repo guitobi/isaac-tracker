@@ -32,8 +32,26 @@ export class RunsService {
     }));
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} run`;
+  async findOne(id: number) {
+    const run = await this.prisma.run.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        character: true,
+      },
+    });
+
+    if (!run) return null;
+
+    const itemsData = await this.prisma.item.findMany({
+      where: { id: { in: run.items } },
+    });
+    const itemsMap = new Map(itemsData.map((i) => [i.id, i]));
+
+    return {
+      ...run,
+      itemObjects: run.items.map((itemId) => itemsMap.get(itemId)).filter(Boolean),
+    };
   }
 
   update(id: number, updateRunDto: UpdateRunDto) {
