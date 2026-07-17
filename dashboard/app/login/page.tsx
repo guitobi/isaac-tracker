@@ -1,16 +1,40 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Login attempt:", { username, password });
-    // TODO: зробити POST запит на бекенд і зберегти JWT/сесію
+  const router = useRouter();
+
+  const onSubmit = async (data: any) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const res = await fetch(`${apiUrl}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        throw new Error('Login failed! Check your username and password.');
+      }
+
+      const result = await res.json();
+      
+      if (result.access_token) {
+        localStorage.setItem('isaac_token', result.access_token);
+        router.push('/');
+      }
+    } catch (err: any) {
+      alert(err.message);
+    }
   };
 
   return (
@@ -30,27 +54,27 @@ export default function LoginPage() {
           ENTER THE BASEMENT
         </h1>
 
-        <form onSubmit={handleLogin} className="w-full flex flex-col gap-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-6">
           <div className="flex flex-col gap-2">
             <label className="font-hand text-3xl font-bold">Username:</label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
               placeholder="e.g. Isaac"
-              className="w-full p-3 font-pixel text-2xl border-4 border-black bg-[rgba(0,0,0,0.05)] focus:bg-[rgba(255,255,255,0.5)] outline-none focus:ring-0 transition-colors shadow-[inset_3px_3px_0_rgba(0,0,0,0.1)] placeholder:text-gray-500"
+              {...register("username", { required: "Username is required" })}
+              className={`w-full p-3 font-pixel text-2xl border-4 ${errors.username ? 'border-red-600' : 'border-black'} bg-[rgba(0,0,0,0.05)] focus:bg-[rgba(255,255,255,0.5)] outline-none focus:ring-0 transition-colors shadow-[inset_3px_3px_0_rgba(0,0,0,0.1)] placeholder:text-gray-500`}
             />
+            {errors.username && <span className="font-pixel text-red-600 text-lg">{errors.username.message as string}</span>}
           </div>
 
           <div className="flex flex-col gap-2">
             <label className="font-hand text-3xl font-bold">Password:</label>
             <input
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full p-3 font-pixel text-2xl border-4 border-black bg-[rgba(0,0,0,0.05)] focus:bg-[rgba(255,255,255,0.5)] outline-none focus:ring-0 transition-colors shadow-[inset_3px_3px_0_rgba(0,0,0,0.1)] placeholder:text-gray-500"
+              {...register("password", { required: "Password is required" })}
+              className={`w-full p-3 font-pixel text-2xl border-4 ${errors.password ? 'border-red-600' : 'border-black'} bg-[rgba(0,0,0,0.05)] focus:bg-[rgba(255,255,255,0.5)] outline-none focus:ring-0 transition-colors shadow-[inset_3px_3px_0_rgba(0,0,0,0.1)] placeholder:text-gray-500`}
             />
+            {errors.password && <span className="font-pixel text-red-600 text-lg">{errors.password.message as string}</span>}
           </div>
 
           <button

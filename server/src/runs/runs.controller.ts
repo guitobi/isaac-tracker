@@ -6,15 +6,18 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { RunsService } from './runs.service';
 import { CreateRunDto } from './dto/create-run.dto';
 import { UpdateRunDto } from './dto/update-run.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('runs')
 export class RunsController {
   constructor(private readonly runsService: RunsService) {}
 
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Body() createRunDto: CreateRunDto) {
     return this.runsService.create(createRunDto);

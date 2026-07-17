@@ -1,20 +1,11 @@
 "use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { Run } from '../types';
+import { useRuns } from '../hooks/useRuns';
 import { Header } from '../components/Header';
 import { RunCard } from '../components/RunCard';
 
 export default function Home() {
-  const { data: runs = [], isLoading, error } = useQuery<Run[]>({
-    queryKey: ['runs'],
-    queryFn: async () => {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-      const res = await fetch(`${apiUrl}/runs`);
-      if (!res.ok) throw new Error('Network response was not ok');
-      return res.json();
-    }
-  });
+  const { data: runs = [], isLoading, error } = useRuns();
 
   if (error) {
     return (
