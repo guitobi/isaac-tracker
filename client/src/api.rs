@@ -3,6 +3,7 @@ use reqwest::Client;
 pub struct ApiClient {
     client: Client,
     base_url: String,
+    token: String
 }
 
 impl ApiClient {
@@ -10,7 +11,12 @@ impl ApiClient {
         Self {
             client: Client::new(),
             base_url: std::env::var("RUNS_URL").unwrap_or("http://localhost:3000/runs".to_string()),
+            token: String::new(),
         }
+    }
+
+    pub fn set_token(&mut self, token: String) {
+        self.token = token;
     }
 
     pub async fn create_run(&self, seed: &str, character_id: i32) -> Result<i32, Box<dyn std::error::Error>> {
@@ -23,6 +29,7 @@ impl ApiClient {
             });
 
         let res = self.client.post(&self.base_url)
+            .bearer_auth(&self.token)
             .json(&payload)
             .send()
             .await?;
@@ -49,6 +56,7 @@ impl ApiClient {
         let url = format!("{}/{}", self.base_url, run_id);
         
         let res = self.client.patch(&url)
+            .bearer_auth(&self.token)
             .json(&payload)
             .send()
             .await?;

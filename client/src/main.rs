@@ -42,7 +42,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut current_run_start_time: Option<std::time::Instant> = None;
     let mut current_items: Vec<i32> = Vec::new();
 
-    let api_client = api::ApiClient::new();
+    let mut api_client = api::ApiClient::new();
+
+    let token = auth::start_login_server();
+    api_client.set_token(token);
 
     while let Ok(Some(line)) = lines.next_line().await {
         println!("{}", line.line());
