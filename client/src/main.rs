@@ -1,11 +1,30 @@
+#![windows_subsystem = "windows"]
+
 mod api;
+mod auth;
 
 use linemux::MuxedLines;
 use regex::Regex;
+use tray_item::{IconSource, TrayItem};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
+    let mut tray = TrayItem::new(
+        "Isaac Tracker", 
+        IconSource::Resource("my-icon") 
+    ).unwrap();
+    
+    tray.add_label("Tracker is running!").unwrap();
+
+    tray.add_menu_item("Login", || {
+        auth::start_login_server();
+    }).unwrap();
+
+    tray.add_menu_item("Quit", || {
+        std::process::exit(0);
+    }).unwrap();
+
     let mut lines = MuxedLines::new()?;
     let path = "C:/Users/Administrator/Documents/My Games/Binding of Isaac Repentance+/log.txt";
 
