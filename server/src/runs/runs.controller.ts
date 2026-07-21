@@ -28,14 +28,19 @@ export class RunsController {
     return this.runsService.create(req.user.sub, createRunDto);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get()
-  findAll() {
-    return this.runsService.findAll();
+  findAll(@Req() req: Request & { user: { sub: number } }) {
+    return this.runsService.findAll(req.user.sub);
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.runsService.findOne(+id);
+  findOne(
+    @Param('id') id: string,
+    @Req() req: Request & { user: { sub: number } }
+  ) {
+    return this.runsService.findOne(+id, req.user.sub);
   }
 
   @UseGuards(AuthGuard('jwt'))

@@ -13,4 +13,5 @@ export interface Run {
   items: number[];
   characterId: number;
   itemObjects: ItemInfo[];
+  trinkets: number[];
 }

@@ -75,7 +75,7 @@ export default function RunDetailsPage() {
         <div className="flex gap-4 flex-wrap">
           {run.itemObjects && run.itemObjects.length > 0 ? (
             run.itemObjects.map((item, index) => (
-              <div key={`${item.id}-${index}`} className="flex flex-col items-center">
+              <div key={`item-${item.id}-${index}`} className="flex flex-col items-center">
                 <ItemIcon item={item} />
                 <span className="font-pixel text-lg mt-2 max-w-[60px] text-center leading-none">{item.name}</span>
               </div>
@@ -83,6 +83,34 @@ export default function RunDetailsPage() {
           ) : (
             <div className="w-full text-center py-8 font-hand text-3xl text-gray-700">
               Nothing found...
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Зібрані брелоки */}
+      <section className="isaac-card p-8">
+        <h2 className="font-hand text-4xl font-bold mb-6 border-b-4 border-black pb-2">Trinkets</h2>
+        
+        <div className="flex gap-4 flex-wrap">
+          {run.trinkets && run.trinkets.length > 0 ? (
+            run.trinkets.map((trinketId, index) => (
+              <div key={`trinket-${trinketId}-${index}`} className="flex flex-col items-center">
+                <img
+                  src={`/trinkets/${trinketId}.png`}
+                  alt={`Trinket ${trinketId}`}
+                  className="w-16 h-16 object-contain drop-shadow-md"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src =
+                      "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
+                  }}
+                />
+                <span className="font-pixel text-lg mt-2 text-center">ID: {trinketId}</span>
+              </div>
+            ))
+          ) : (
+            <div className="w-full text-center py-8 font-hand text-3xl text-gray-700">
+              No trinkets.
             </div>
           )}
         </div>

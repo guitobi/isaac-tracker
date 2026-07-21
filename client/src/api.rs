@@ -44,11 +44,12 @@ impl ApiClient {
         Ok(new_id)
     }
 
-    // Метод для оновлення забігу
-    pub async fn update_run(&self, run_id: i32, is_victory: bool, items: Vec<i32>, duration: u64) -> Result<(), Box<dyn std::error::Error>> {
+    // Method for updating run
+    pub async fn update_run(&self, run_id: i32, is_victory: bool, items: Vec<i32>, trinkets: Vec<i32>,duration: u64) -> Result<(), Box<dyn std::error::Error>> {
         let payload = serde_json::json!({
             "isVictory": is_victory,
             "items": items,
+            "trinkets": trinkets,
             "duration": duration
         });
 

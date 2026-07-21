@@ -35,6 +35,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let regex_player = Regex::new(r"Initialized player with Variant (\d+)").unwrap();
     let regex_death = Regex::new(r"Game Over").unwrap();
     let item_regex = Regex::new(r"Adding collectible (\d+)").unwrap();
+    let trinket_regex = Regex::new(r"Adding trinket (\d+)").unwrap();
 
     lines.add_file(path).await?;
 
@@ -44,6 +45,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut current_run_id: Option<i32> = None;
     let mut current_run_start_time: Option<std::time::Instant> = None;
     let mut current_items: Vec<i32> = Vec::new();
+    let mut current_trinkets: Vec<i32> = Vec::new();
 
     let mut api_client = api::ApiClient::new();
 
@@ -73,6 +75,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("[INFO] Picked up item: {}", item_id);
         }
 
+        if let Some(captures) = trinket_regex.captures(line.line()) {
+            let trinket_id = captures[1].parse::<i32>().unwrap();
+
+            current_trinkets.push(trinket_id);
+
+
+            println!("[INFO] Picked up trincket: {}", trinket_id);
+        }
+
         if let Some(captures) = regex_seed.captures(line.line()) {
             let seed = captures[1].to_string();
             println!("[INFO] Seed found: {}", seed);
@@ -98,10 +109,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if regex_death.is_match(line.line()) {
             if let Some(run_id) = current_run_id {
                 let duration = current_run_start_time.unwrap().elapsed().as_secs();
-                match api_client.update_run(run_id, false, current_items.clone(), duration).await {
+                match api_client.update_run(run_id, false, current_items.clone(), current_trinkets.clone(), duration).await {
                     Ok(_) => {
                         current_run_id = None;
                         current_items.clear();
+                        current_trinkets.clear();
                     },
                     Err(e) => println!("[ERROR] Failed to update run: {}", e),
                 }

@@ -31,7 +31,8 @@ model Run {
   seed        String?
   isVictory   Boolean
   items       Int[]
-  duration    Int  
+  duration    Int
+  trinkents   Int[]  
   userId      Int
   user        User      @relation(fields: [userId], references: [id])
   characterId Int
