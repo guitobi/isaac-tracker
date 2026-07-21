@@ -4,9 +4,17 @@ use std::io::Write;
 use regex::Regex;
 
 pub fn start_login_server() -> String {
-    let listener = TcpListener::bind("127.0.0.1:12345").unwrap();
+    let listener = match TcpListener::bind("127.0.0.1:12345") {
+      Ok(server) => {
+        server
+      },
+      Err(error) => {
+        println!("Something went wrong when starting a server: {}", error);
+        std::process::exit(1);
+      }
+    };
 
-    let url = std::env::var("DASHBOARD_LOGIN_URL").unwrap();
+    let url = std::env::var("DASHBOARD_LOGIN_URL").unwrap_or("http://localhost:3001/login?desktop=true".to_string());
     std::process::Command::new("cmd")
         .args(["/C", "start", &url])
         .spawn()

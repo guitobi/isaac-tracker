@@ -6,6 +6,9 @@ mod auth;
 use linemux::MuxedLines;
 use regex::Regex;
 use tray_item::{IconSource, TrayItem};
+use keyring::Entry;
+
+use crate::auth::start_login_server;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -44,7 +47,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut api_client = api::ApiClient::new();
 
-    let token = auth::start_login_server();
+    let entry = Entry::new("isaac-tracker", "default").unwrap();
+
+    let token = match entry.get_password() {
+        Ok(saved_token) => {
+            saved_token
+        } ,
+        Err(_) => {
+            let res = start_login_server();
+            entry.set_password(&res).unwrap();
+            res
+        }
+     };
+
     api_client.set_token(token);
 
     while let Ok(Some(line)) = lines.next_line().await {
