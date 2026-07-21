@@ -2,9 +2,13 @@
 
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const isDesktop = searchParams.get("desktop") === "true";
+
   const {
     register,
     handleSubmit,
@@ -13,27 +17,36 @@ export default function LoginPage() {
 
   const router = useRouter();
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: Record<string, string>) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
       const res = await fetch(`${apiUrl}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
       if (!res.ok) {
-        throw new Error('Login failed! Check your username and password.');
+        throw new Error("Login failed! Check your username and password.");
       }
 
-      const result = await res.json();
-      
+      const result: { access_token: string } = await res.json();
+
       if (result.access_token) {
-        localStorage.setItem('isaac_token', result.access_token);
-        router.push('/');
+        localStorage.setItem("isaac_token", result.access_token);
+        if (isDesktop) {
+          const desktopClientUrl = process.env.NEXT_PUBLIC_DESKTOP_CLIENT_URL || "http://localhost:12345";
+          window.location.assign(`${desktopClientUrl}/?token=${result.access_token}`);
+        } else {
+          router.push("/");
+        }
       }
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("An unknown error occurred.");
+      }
     }
   };
 
@@ -54,16 +67,23 @@ export default function LoginPage() {
           ENTER THE BASEMENT
         </h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="w-full flex flex-col gap-6"
+        >
           <div className="flex flex-col gap-2">
             <label className="font-hand text-3xl font-bold">Username:</label>
             <input
               type="text"
               placeholder="e.g. Isaac"
               {...register("username", { required: "Username is required" })}
-              className={`w-full p-3 font-pixel text-2xl border-4 ${errors.username ? 'border-red-600' : 'border-black'} bg-[rgba(0,0,0,0.05)] focus:bg-[rgba(255,255,255,0.5)] outline-none focus:ring-0 transition-colors shadow-[inset_3px_3px_0_rgba(0,0,0,0.1)] placeholder:text-gray-500`}
+              className={`w-full p-3 font-pixel text-2xl border-4 ${errors.username ? "border-red-600" : "border-black"} bg-[rgba(0,0,0,0.05)] focus:bg-[rgba(255,255,255,0.5)] outline-none focus:ring-0 transition-colors shadow-[inset_3px_3px_0_rgba(0,0,0,0.1)] placeholder:text-gray-500`}
             />
-            {errors.username && <span className="font-pixel text-red-600 text-lg">{errors.username.message as string}</span>}
+            {errors.username && (
+              <span className="font-pixel text-red-600 text-lg">
+                {errors.username.message as string}
+              </span>
+            )}
           </div>
 
           <div className="flex flex-col gap-2">
@@ -72,9 +92,13 @@ export default function LoginPage() {
               type="password"
               placeholder="••••••••"
               {...register("password", { required: "Password is required" })}
-              className={`w-full p-3 font-pixel text-2xl border-4 ${errors.password ? 'border-red-600' : 'border-black'} bg-[rgba(0,0,0,0.05)] focus:bg-[rgba(255,255,255,0.5)] outline-none focus:ring-0 transition-colors shadow-[inset_3px_3px_0_rgba(0,0,0,0.1)] placeholder:text-gray-500`}
+              className={`w-full p-3 font-pixel text-2xl border-4 ${errors.password ? "border-red-600" : "border-black"} bg-[rgba(0,0,0,0.05)] focus:bg-[rgba(255,255,255,0.5)] outline-none focus:ring-0 transition-colors shadow-[inset_3px_3px_0_rgba(0,0,0,0.1)] placeholder:text-gray-500`}
             />
-            {errors.password && <span className="font-pixel text-red-600 text-lg">{errors.password.message as string}</span>}
+            {errors.password && (
+              <span className="font-pixel text-red-600 text-lg">
+                {errors.password.message as string}
+              </span>
+            )}
           </div>
 
           <button
