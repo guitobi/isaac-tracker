@@ -7,8 +7,13 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class RunsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createRunDto: CreateRunDto) {
-    return this.prisma.run.create({ data: createRunDto });
+  create(userId: number, createRunDto: CreateRunDto) {
+    return this.prisma.run.create({
+      data: {
+        ...createRunDto,
+        userId: userId,
+      },
+    });
   }
 
   async findAll() {
@@ -50,7 +55,9 @@ export class RunsService {
 
     return {
       ...run,
-      itemObjects: run.items.map((itemId) => itemsMap.get(itemId)).filter(Boolean),
+      itemObjects: run.items
+        .map((itemId) => itemsMap.get(itemId))
+        .filter(Boolean),
     };
   }
 

@@ -23,7 +23,17 @@ pub fn start_login_server() -> String {
       if let Some(captures) = token.captures(&request) {
         let token = captures[1].to_string();
         println!("Token: {}", token);
-        stream.write("HTTP/1.1 200 OK\r\n\r\nLogin Successful!".as_bytes()).unwrap();
+        let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n\
+        <html>\
+        <body style=\"background-color: #1c1815; color: #e3d2b8; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0;\">\
+        <div style=\"text-align: center;\">\
+        <h1>Login Successful!</h1>\
+        <p>Returning to tracker...</p>\
+        <script>setTimeout(() => window.close(), 2000);</script>\
+        </div>\
+        </body>\
+        </html>";
+        stream.write(response.as_bytes()).unwrap();
         return token;
       }
 

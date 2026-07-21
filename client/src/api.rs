@@ -22,8 +22,7 @@ impl ApiClient {
     pub async fn create_run(&self, seed: &str, character_id: i32) -> Result<i32, Box<dyn std::error::Error>> {
           let payload = serde_json::json!({
                 "seed": seed, 
-                "characterId": character_id,
-                "userId": 1, 
+                "characterId": character_id, 
                 "isVictory": false,
                 "duration": 0
             });
