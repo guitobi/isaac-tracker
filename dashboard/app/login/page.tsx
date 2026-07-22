@@ -30,13 +30,13 @@ export default function LoginPage() {
         throw new Error("Login failed! Check your username and password.");
       }
 
-      const result: { access_token: string } = await res.json();
+      const result: { access_token: string; username: string } = await res.json();
 
       if (result.access_token) {
         localStorage.setItem("isaac_token", result.access_token);
         if (isDesktop) {
           const desktopClientUrl = process.env.NEXT_PUBLIC_DESKTOP_CLIENT_URL || "http://localhost:12345";
-          window.location.assign(`${desktopClientUrl}/?token=${result.access_token}`);
+          window.location.assign(`${desktopClientUrl}/?token=${result.access_token}&username=${result.username}`);
         } else {
           router.push("/");
         }

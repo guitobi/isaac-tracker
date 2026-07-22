@@ -27,12 +27,13 @@ model Character {
 }
 
 model Run {
-  id          Int     @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   seed        String?
   isVictory   Boolean
-  items       Int[]
+  items       Int[]     @default([])
   duration    Int
-  trinkents   Int[]  
+  trinkets    Int[]     @default([])
+  bosses      String[]  @default([])
   userId      Int
   user        User      @relation(fields: [userId], references: [id])
   characterId Int

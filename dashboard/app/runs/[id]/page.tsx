@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { ItemIcon } from '../../../components/ItemIcon';
 import { useRun } from '../../../hooks/useRuns';
+import { getBossImageUrl } from '../../lib/bosses';
 
 export default function RunDetailsPage() {
   const params = useParams();
@@ -41,7 +42,12 @@ export default function RunDetailsPage() {
       <header className="isaac-card p-8">
         <div className="flex justify-between items-start mb-6 border-b-4 border-black pb-4">
           <div>
-            <h1 className="font-hand text-5xl font-extrabold">Isaac</h1>
+            <h1 className="font-hand text-5xl font-extrabold">
+              {run.character?.name || `Character #${run.characterId}`}
+            </h1>
+            {run.user?.username && (
+              <p className="font-pixel text-xl text-gray-700 mt-1">Player: {run.user.username}</p>
+            )}
             <p className="font-pixel text-2xl mt-2">SEED: {run.seed}</p>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -58,8 +64,8 @@ export default function RunDetailsPage() {
             <p className="text-3xl font-pixel mt-1">{Math.floor(run.duration / 60)}m {run.duration % 60}s</p>
           </div>
           <div className="border-4 border-black p-4 bg-[rgba(0,0,0,0.05)]">
-            <p className="font-hand text-2xl font-bold">Char ID</p>
-            <p className="text-3xl font-pixel mt-1">{run.characterId}</p>
+            <p className="font-hand text-2xl font-bold">Character</p>
+            <p className="text-3xl font-pixel mt-1">{run.character?.name || `#${run.characterId}`}</p>
           </div>
           <div className="border-4 border-black p-4 bg-[rgba(0,0,0,0.05)]">
             <p className="font-hand text-2xl font-bold">Items</p>
@@ -111,6 +117,40 @@ export default function RunDetailsPage() {
           ) : (
             <div className="w-full text-center py-8 font-hand text-3xl text-gray-700">
               No trinkets.
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Переможені боси */}
+      <section className="isaac-card p-8">
+        <h2 className="font-hand text-4xl font-bold mb-6 border-b-4 border-black pb-2">Bosses Defeated</h2>
+        
+        <div className="flex gap-4 flex-wrap">
+          {run.bosses && run.bosses.length > 0 ? (
+            run.bosses.map((boss, index) => {
+              const imageUrl = getBossImageUrl(boss);
+              return (
+                <div key={`boss-${index}`} className="flex flex-col items-center border-2 border-black p-2 bg-[rgba(0,0,0,0.03)] min-w-[80px]">
+                  {imageUrl ? (
+                    <img
+                      src={imageUrl}
+                      alt={boss}
+                      className="w-16 h-16 object-contain drop-shadow-md"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 flex items-center justify-center font-pixel text-2xl">👹</div>
+                  )}
+                  <span className="font-pixel text-sm mt-2 text-center max-w-[100px] leading-tight">{boss}</span>
+                </div>
+              );
+            })
+          ) : (
+            <div className="w-full text-center py-4 font-hand text-2xl text-gray-700">
+              No bosses defeated.
             </div>
           )}
         </div>

@@ -22,16 +22,17 @@ export class RunsController {
   @UseGuards(AuthGuard('jwt'))
   @Post()
   create(
-    @Req() req: Request & { user: { sub: number } },
+    @Req() req: Request & { user: { userId?: number; sub?: number } },
     @Body() createRunDto: CreateRunDto,
   ) {
-    return this.runsService.create(req.user.sub, createRunDto);
+    const userId = req.user.userId ?? req.user.sub!;
+    return this.runsService.create(userId, createRunDto);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(@Req() req: Request & { user: { sub: number } }) {
-    return this.runsService.findAll(req.user.sub);
+    return this.runsService.findAll();
   }
 
   @UseGuards(AuthGuard('jwt'))
@@ -40,7 +41,7 @@ export class RunsController {
     @Param('id') id: string,
     @Req() req: Request & { user: { sub: number } }
   ) {
-    return this.runsService.findOne(+id, req.user.sub);
+    return this.runsService.findOne(+id);
   }
 
   @UseGuards(AuthGuard('jwt'))

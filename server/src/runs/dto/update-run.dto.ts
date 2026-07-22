@@ -4,4 +4,5 @@ import { CreateRunDto } from './create-run.dto';
 export class UpdateRunDto extends PartialType(CreateRunDto) {
   items?: number[];
   trinkets?: number[];
+  bosses?: string[];
 }

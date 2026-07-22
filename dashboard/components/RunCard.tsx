@@ -13,7 +13,14 @@ export function RunCard({ run }: RunCardProps) {
         <div>
           <div className="flex justify-between items-start mb-2 border-b-4 border-black pb-2">
             <div>
-              <h3 className="font-hand font-bold text-3xl">Isaac</h3>
+              <h3 className="font-hand font-bold text-3xl">
+                {run.character?.name || `Character #${run.characterId}`}
+              </h3>
+              {run.user?.username && (
+                <p className="font-pixel text-sm text-gray-700">
+                  Player: {run.user.username}
+                </p>
+              )}
               <p className="font-pixel text-xl text-gray-800">
                 SEED: {run.seed}
               </p>

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateRunDto } from './dto/create-run.dto';
 import { UpdateRunDto } from './dto/update-run.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -8,8 +8,14 @@ export class RunsService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(userId: number, createRunDto: CreateRunDto) {
+    if (!userId) {
+      throw new BadRequestException('User ID is missing in request context');
+    }
     return this.prisma.run.create({
       data: {
+        items: [],
+        trinkets: [],
+        bosses: [],
         ...createRunDto,
         userId: userId,
       },
