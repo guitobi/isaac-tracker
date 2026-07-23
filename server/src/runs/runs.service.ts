@@ -24,6 +24,13 @@ export class RunsService {
 
   async findAll() {
     const runs = await this.prisma.run.findMany({
+      where: {
+        OR: [
+          { items: { isEmpty: false } },
+          { trinkets: { isEmpty: false } },
+          { isVictory: true },
+        ],
+      },
       include: {
         user: true,
         character: true,
@@ -37,9 +44,16 @@ export class RunsService {
     });
     const itemsMap = new Map(itemsData.map((i) => [i.id, i]));
 
+    const allTrinketIds = [...new Set(runs.flatMap((r) => r.trinkets))];
+    const trinketsData = await this.prisma.trinket.findMany({
+      where: { id: { in: allTrinketIds } },
+    });
+    const trinketsMap = new Map(trinketsData.map((t) => [t.id, t]));
+
     return runs.map((run) => ({
       ...run,
       itemObjects: run.items.map((id) => itemsMap.get(id)).filter(Boolean),
+      trinketObjects: run.trinkets.map((id) => trinketsMap.get(id)).filter(Boolean),
     }));
   }
 
@@ -59,15 +73,37 @@ export class RunsService {
     });
     const itemsMap = new Map(itemsData.map((i) => [i.id, i]));
 
+    const trinketsData = await this.prisma.trinket.findMany({
+      where: { id: { in: run.trinkets } },
+    });
+    const trinketsMap = new Map(trinketsData.map((t) => [t.id, t]));
+
     return {
       ...run,
       itemObjects: run.items
         .map((itemId) => itemsMap.get(itemId))
         .filter(Boolean),
+      trinketObjects: run.trinkets
+        .map((trinketId) => trinketsMap.get(trinketId))
+        .filter(Boolean),
     };
   }
 
-  update(id: number, updateRunDto: UpdateRunDto) {
+  async update(id: number, updateRunDto: UpdateRunDto) {
+    const items = updateRunDto.items ?? [];
+    const trinkets = updateRunDto.trinkets ?? [];
+    const isVictory = updateRunDto.isVictory ?? false;
+
+    // Discard run if ended without picking up any items or trinkets
+    if (items.length === 0 && trinkets.length === 0 && !isVictory) {
+      try {
+        await this.prisma.run.delete({ where: { id } });
+        return { message: 'Discarded empty run without items', deleted: true };
+      } catch {
+        return { message: 'Run already discarded' };
+      }
+    }
+
     return this.prisma.run.update({
       where: { id },
       data: updateRunDto,

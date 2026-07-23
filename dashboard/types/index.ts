@@ -27,6 +27,7 @@ export interface Run {
   user?: UserInfo;
   itemObjects: ItemInfo[];
   trinkets: number[];
+  trinketObjects?: ItemInfo[];
   bosses?: string[];
 }
 

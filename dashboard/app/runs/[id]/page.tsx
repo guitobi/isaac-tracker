@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { ItemIcon } from '../../../components/ItemIcon';
 import { useRun } from '../../../hooks/useRuns';
 import { getBossImageUrl } from '../../lib/bosses';
+import { formatItemName } from '../../lib/items';
 
 export default function RunDetailsPage() {
   const params = useParams();
@@ -80,12 +81,15 @@ export default function RunDetailsPage() {
         
         <div className="flex gap-4 flex-wrap">
           {run.itemObjects && run.itemObjects.length > 0 ? (
-            run.itemObjects.map((item, index) => (
-              <div key={`item-${item.id}-${index}`} className="flex flex-col items-center">
-                <ItemIcon item={item} />
-                <span className="font-pixel text-lg mt-2 max-w-[60px] text-center leading-none">{item.name}</span>
-              </div>
-            ))
+            run.itemObjects.map((item, index) => {
+              const formattedName = formatItemName(item.id, item.name);
+              return (
+                <div key={`item-${item.id}-${index}`} className="flex flex-col items-center border-2 border-black/20 p-2 bg-[rgba(0,0,0,0.02)] rounded w-24">
+                  <ItemIcon item={item} />
+                  <span className="font-pixel text-xs mt-2 text-center leading-tight line-clamp-2 w-full break-words">{formattedName}</span>
+                </div>
+              );
+            })
           ) : (
             <div className="w-full text-center py-8 font-hand text-3xl text-gray-700">
               Nothing found...
@@ -99,21 +103,16 @@ export default function RunDetailsPage() {
         <h2 className="font-hand text-4xl font-bold mb-6 border-b-4 border-black pb-2">Trinkets</h2>
         
         <div className="flex gap-4 flex-wrap">
-          {run.trinkets && run.trinkets.length > 0 ? (
-            run.trinkets.map((trinketId, index) => (
-              <div key={`trinket-${trinketId}-${index}`} className="flex flex-col items-center">
-                <img
-                  src={`/trinkets/${trinketId}.png`}
-                  alt={`Trinket ${trinketId}`}
-                  className="w-16 h-16 object-contain drop-shadow-md"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-                  }}
-                />
-                <span className="font-pixel text-lg mt-2 text-center">ID: {trinketId}</span>
-              </div>
-            ))
+          {run.trinketObjects && run.trinketObjects.length > 0 ? (
+            run.trinketObjects.map((trinket, index) => {
+              const formattedName = formatItemName(trinket.id, trinket.name);
+              return (
+                <div key={`trinket-${trinket.id}-${index}`} className="flex flex-col items-center border-2 border-black/20 p-2 bg-[rgba(0,0,0,0.02)] rounded w-24">
+                  <ItemIcon item={trinket} />
+                  <span className="font-pixel text-xs mt-2 text-center leading-tight line-clamp-2 w-full break-words">{formattedName}</span>
+                </div>
+              );
+            })
           ) : (
             <div className="w-full text-center py-8 font-hand text-3xl text-gray-700">
               No trinkets.

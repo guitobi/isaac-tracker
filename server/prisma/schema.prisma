@@ -46,3 +46,10 @@ model Item {
   description String
   image       String
 }
+
+model Trinket {
+  id          Int    @id
+  name        String
+  description String
+  image       String
+}

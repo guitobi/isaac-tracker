@@ -19,7 +19,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = "C:/Users/Administrator/Documents/My Games/Binding of Isaac Repentance+/log.txt";
 
     let regex_seed = Regex::new(r"RNG Start Seed: ([a-zA-Z0-9 ]+)").unwrap();
-    let regex_player = Regex::new(r"Initialized player with Variant (\d+)").unwrap();
+    let regex_player = Regex::new(r"(?:Subtype\s+|Subtype\()\s*(\d+)").unwrap();
     let regex_death = Regex::new(r"Game Over").unwrap();
     let item_regex = Regex::new(r"Adding collectible (\d+)").unwrap();
     let trinket_regex = Regex::new(r"Adding trinket (\d+)").unwrap();
@@ -127,19 +127,40 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(captures) = item_regex.captures(line.line()) {
             let item_id = captures[1].parse::<i32>().unwrap_or(0);
-
             current_items.push(item_id);
-            
             println!("[INFO] Picked up item: {}", item_id);
+
+            // Real-time sync item to active run on server
+            if let Some(run_id) = current_run_id {
+                let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
+                let _ = api_client.update_run(
+                    run_id,
+                    false,
+                    current_items.clone(),
+                    current_trinkets.clone(),
+                    current_bosses.clone(),
+                    duration
+                ).await;
+            }
         }
 
         if let Some(captures) = trinket_regex.captures(line.line()) {
             let trinket_id = captures[1].parse::<i32>().unwrap_or(0);
-
             current_trinkets.push(trinket_id);
-
-
             println!("[INFO] Picked up trinket: {}", trinket_id);
+
+            // Real-time sync trinket to active run on server
+            if let Some(run_id) = current_run_id {
+                let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
+                let _ = api_client.update_run(
+                    run_id,
+                    false,
+                    current_items.clone(),
+                    current_trinkets.clone(),
+                    current_bosses.clone(),
+                    duration
+                ).await;
+            }
         }
 
         if let Some(captures) = regex_boss_room.captures(line.line()) {
@@ -152,18 +173,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some(boss_name) = current_room_boss.take() {
                 println!("[INFO] Boss is dead: {}", boss_name);
                 current_bosses.push(boss_name);
+
+                if let Some(run_id) = current_run_id {
+                    let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
+                    let _ = api_client.update_run(
+                        run_id,
+                        false,
+                        current_items.clone(),
+                        current_trinkets.clone(),
+                        current_bosses.clone(),
+                        duration
+                    ).await;
+                }
             }
         }
 
         if let Some(captures) = regex_seed.captures(line.line()) {
             let seed = captures[1].to_string();
             println!("[INFO] Seed found: {}", seed);
-            current_seed = Some(seed);
-        }
-
-        if let Some(captures) = regex_player.captures(line.line()) {
-            let player_id = captures[1].parse::<i32>().unwrap_or(0);
-            let seed_val = current_seed.clone().unwrap_or_else(|| "UNKNOWN".to_string());
 
             // Handle Quick Restart (R key): close previous run if it wasn't finished
             if let Some(old_run_id) = current_run_id.take() {
@@ -185,21 +212,29 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             current_items.clear();
             current_trinkets.clear();
             current_bosses.clear();
+            current_seed = Some(seed);
+        }
 
-            println!("[INFO] Player found: {} (Seed: {})", player_id, seed_val);
+        if let Some(captures) = regex_player.captures(line.line()) {
+            let player_id = captures[1].parse::<i32>().unwrap_or(0);
+            
+            // Only create a new run if we have a seed AND don't already have an active run
+            if current_run_id.is_none() {
+                let seed_val = current_seed.clone().unwrap_or_else(|| "UNKNOWN".to_string());
+                println!("[INFO] Player found: {} (Seed: {})", player_id, seed_val);
 
-            match api_client.create_run(&seed_val, player_id).await {
-                Ok(new_id) => {
-                    println!("[SUCCESS] Created run with ID: {}", new_id);
-                    current_run_id = Some(new_id);
-                    current_run_start_time = Some(std::time::Instant::now());
-                },
-                Err(e) => println!("[ERROR] Failed to create run: {}", e),
+                match api_client.create_run(&seed_val, player_id).await {
+                    Ok(new_id) => {
+                        println!("[SUCCESS] Created run with ID: {}", new_id);
+                        current_run_id = Some(new_id);
+                        current_run_start_time = Some(std::time::Instant::now());
+                    },
+                    Err(e) => println!("[ERROR] Failed to create run: {}", e),
+                }
             }
         }
 
         if regex_death.is_match(line.line()) {
-            // Fallback: If current_run_id is None, attempt creating a run on the fly so Game Over is never lost
             let target_run_id = match current_run_id {
                 Some(id) => Some(id),
                 None => {

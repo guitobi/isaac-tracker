@@ -1,0 +1,754 @@
+{
+  "1": {
+    "name": "Swallowed Penny",
+    "description": "• Coin Taking damage spawns 1 coin"
+  },
+  "2": {
+    "name": "Petrified Poop",
+    "description": "• 50% chance to get drops from poop"
+  },
+  "3": {
+    "name": "AAA Battery",
+    "description": "• Battery -1 Charge needed for active items"
+  },
+  "4": {
+    "name": "Broken Remote",
+    "description": "• Collectible44 Using an active item teleports Isaac to a random room"
+  },
+  "5": {
+    "name": "Purple Heart",
+    "description": "• 2x chance for champion enemies"
+  },
+  "6": {
+    "name": "Broken Magnet",
+    "description": "• Coin Attracts coins to Isaac"
+  },
+  "7": {
+    "name": "Rosary Bead",
+    "description": "• Angel Chance 50% higher Angel Room chance\n• Collectible33 Higher chance to find The Bible in Shop Shops and Library Libraries"
+  },
+  "8": {
+    "name": "Cartridge",
+    "description": "• Timer 5% chance upon taking damage to receive for 6.5 seconds:\n• Invincibility\n• Isaac can't shoot but deals 40 contact damage per second\n• Healing Red Killing 2 enemies heals half a heart\n• Fear Fears all enemies in the room"
+  },
+  "9": {
+    "name": "Pulse Worm",
+    "description": "• Isaac's tears pulsate\n• Affects tear hitbox"
+  },
+  "10": {
+    "name": "Wiggle Worm",
+    "description": "• ↑ Tears +0.4 Tears\n• Spectral tears\n• Isaac's tears move in waves"
+  },
+  "11": {
+    "name": "Ring Worm",
+    "description": "• ↑ Tears +0.47 Tears\n• Spectral tears\n• Isaac's tears move in spirals with high speed"
+  },
+  "12": {
+    "name": "Flat Worm",
+    "description": "• 50% wider tears\n• Increases knockback"
+  },
+  "13": {
+    "name": "Store Credit",
+    "description": "• Shop Allows Isaac to take 1 Shop item for free"
+  },
+  "14": {
+    "name": "Callus",
+    "description": "• Immune to creep and floor spikes"
+  },
+  "15": {
+    "name": "Lucky Rock",
+    "description": "• Coin Destroying rocks has a 33% chance to spawn a coin"
+  },
+  "16": {
+    "name": "Mom's Toenail",
+    "description": "• Mom's Foot stomps a random spot in the room every 20 seconds"
+  },
+  "17": {
+    "name": "Black Lipstick",
+    "description": "• Black Heart +10% chance for random Soul Hearts to spawn as Black Hearts"
+  },
+  "18": {
+    "name": "Bible Tract",
+    "description": "• Eternal Heart +3% chance for Eternal Hearts"
+  },
+  "19": {
+    "name": "Paper Clip",
+    "description": "• Golden Chest Gold chests can be opened for free"
+  },
+  "20": {
+    "name": "Monkey Paw",
+    "description": "• Black Heart Spawns 1 Black Heart when Isaac's health is damaged down to half a heart\n• Warning Disappears after spawning 3 Black Hearts"
+  },
+  "21": {
+    "name": "Mysterious Paper",
+    "description": "• Randomly grants the effect of: \n• Collectible327 The Polaroid\n• Collectible328 The Negative\n• Trinket48 A Missing Page\n• Trinket23 Missing Poster"
+  },
+  "22": {
+    "name": "Daemon's Tail",
+    "description": "• Heart Decreases spawn rate of hearts to 20%\n• Black Heart All Heart pickups turn into Black Hearts\n• Key Increases the drop chance of keys"
+  },
+  "23": {
+    "name": "Missing Poster",
+    "description": "• Player10 Respawn as The Lost on death"
+  },
+  "24": {
+    "name": "Butt Penny",
+    "description": "• Coin 20% higher chance for coins to spawn from poop\n• Poison Picking up coins makes Isaac fart, which poisons and knocks back enemies and projectiles"
+  },
+  "25": {
+    "name": "Mysterious Candy",
+    "description": "• Isaac farts or spawns poop every 30 seconds"
+  },
+  "26": {
+    "name": "Hook Worm",
+    "description": "• ↑ Tears +0.4 Tears\n• ↑ Range +1.5 Range\n• Spectral tears\n• Isaac's tears move in angular patterns"
+  },
+  "27": {
+    "name": "Whip Worm",
+    "description": "• ↑ Shotspeed +0.5 Shot speed"
+  },
+  "28": {
+    "name": "Broken Ankh",
+    "description": "• Player4 22% chance to respawn as ??? (Blue Baby) on death"
+  },
+  "29": {
+    "name": "Fish Head",
+    "description": "• Taking damage spawns 1 blue fly"
+  },
+  "30": {
+    "name": "Pinky Eye",
+    "description": "• Poison 10% chance to shoot poison tears\n• Luck 100% chance at 18 luck"
+  },
+  "31": {
+    "name": "Push Pin",
+    "description": "• 10% chance to shoot piercing + spectral tears\n• Luck 100% chance at 18 luck"
+  },
+  "32": {
+    "name": "Liberty Cap",
+    "description": "• 25% chance for a random mushroom effect per room"
+  },
+  "33": {
+    "name": "Umbilical Cord",
+    "description": "• Half Heart Having half a Red Heart or less grants Collectible100 Little Steven\n• Collectible318 Taking damage has a high chance to spawn a Gemini familiar for the room"
+  },
+  "34": {
+    "name": "Child's Heart",
+    "description": "• Unknown Heart 10% chance for the room clear reward to be a random heart\n• Heart 33% chance for a bonus heart from chests, tinted rocks, and destroyed machines"
+  },
+  "35": {
+    "name": "Curved Horn",
+    "description": "• ↑ Damage +2 Damage"
+  },
+  "36": {
+    "name": "Rusted Key",
+    "description": "• Key 10% chance for the room clear reward to be a key\n• Key 33% chance for a bonus key from chests, tinted rocks, and destroyed machines"
+  },
+  "37": {
+    "name": "Goat Hoof",
+    "description": "• ↑ Speed +0.15 Speed"
+  },
+  "38": {
+    "name": "Mom's Pearl",
+    "description": "• +10% chance for heart drops to be Soul Heart Soul Hearts, Black Heart Black Hearts or Empty Bone Heart Bone Hearts"
+  },
+  "39": {
+    "name": "Cancer",
+    "description": "• ↑ Tears +1 Fire rate"
+  },
+  "40": {
+    "name": "Red Patch",
+    "description": "• Timer Taking damage has a 20% chance to grant ↑ Damage +1.8 damage for the room\n• Luck 100% chance at 8 luck"
+  },
+  "41": {
+    "name": "Match Stick",
+    "description": "• Bomb 10% chance for the room clear reward to be a bomb\n• Bomb 33% chance for a bonus bomb from chests, tinted rocks, and destroyed machines\n• Warning Removes Trinket53 Tick"
+  },
+  "42": {
+    "name": "Lucky Toe",
+    "description": "• ↑ Luck +1 Luck\n• +8% room clear reward chance\n• 33% chance for an extra pickup from chests, tinted rocks, and destroyed machines"
+  },
+  "43": {
+    "name": "Cursed Skull",
+    "description": "• When damaged down to half a heart or less, Isaac is teleported to a random room"
+  },
+  "44": {
+    "name": "Safety Cap",
+    "description": "• Pill 10% chance for the room clear reward to be a pill\n• Pill 33% chance for a bonus pill from chests, tinted rocks, and destroyed machines"
+  },
+  "45": {
+    "name": "Ace of Spades",
+    "description": "• Card 10% chance for the room clear reward to be a card\n• Card 33% chance for a bonus card from chests, tinted rocks, and destroyed machines"
+  },
+  "46": {
+    "name": "Isaac's Fork",
+    "description": "• Healing Red Clearing a room has a 10% chance to heal half a heart\n• Luck 100% chance at 18 luck"
+  },
+  "48": {
+    "name": "A Missing Page",
+    "description": "• Taking damage has a 5% chance to deal 80 damage to all enemies in the room\n• Collectible35 Black Hearts and Necronomicon-like effects deal double damage"
+  },
+  "49": {
+    "name": "Bloody Penny",
+    "description": "• Half Heart Picking up a coin has a 25% chance to spawn a half Red Heart\n• Higher chance from nickels and dimes"
+  },
+  "50": {
+    "name": "Burnt Penny",
+    "description": "• Bomb Picking up a coin has a 25% chance to spawn a bomb\n• Higher chance from nickels and dimes"
+  },
+  "51": {
+    "name": "Flat Penny",
+    "description": "• Key Picking up a coin has a 25% chance to spawn a key\n• Higher chance from nickels and dimes"
+  },
+  "52": {
+    "name": "Counterfeit Penny",
+    "description": "• Coin Picking up a coin has a 50% chance to add another coin to the counter"
+  },
+  "53": {
+    "name": "Tick",
+    "description": "• Healing Red Heals 1 heart when entering a Boss Room Boss Room\n• -15% boss health\n• Warning Once picked up, it can't be removed\n• Only removeable with Trinket41 Match Stick or gulping"
+  },
+  "54": {
+    "name": "Isaac's Head",
+    "description": "• Familiar with piercing tears\n• Deals 3.5 damage per tear"
+  },
+  "55": {
+    "name": "Maggy's Faith",
+    "description": "• Eternal Heart Entering a new floor grants +1 Eternal Heart"
+  },
+  "56": {
+    "name": "Judas' Tongue",
+    "description": "• Devil Room Reduces all devil deal prices to 1 heart container\n• Doesn't reduce 3 Soul Heart prices"
+  },
+  "57": {
+    "name": "???'s Soul",
+    "description": "• Familiar that bounces around the room\n• Shoots in the same direction as Isaac\n• Deals 3.5 damage per tear"
+  },
+  "58": {
+    "name": "Samson's Lock",
+    "description": "• Timer Killing an enemy has a 6.66% chance to grant ↑ Damage +0.5 damage for the room\n• Luck 100% chance at 10 luck"
+  },
+  "59": {
+    "name": "Cain's Eye",
+    "description": "• Entering a new floor has a 25% chance to reveal map icons\n• Luck 100% chance at 3 luck"
+  },
+  "60": {
+    "name": "Eve's Bird Foot",
+    "description": "• Collectible117 Killing an enemy has a 5% chance to spawn a Dead Bird\n• Luck 100% chance at 8 luck"
+  },
+  "61": {
+    "name": "The Left Hand",
+    "description": "• Red Chest Turns all chests into Red Chests"
+  },
+  "62": {
+    "name": "Shiny Rock",
+    "description": "• Crawlspace rocks and tinted rocks blink every 10 seconds"
+  },
+  "63": {
+    "name": "Safety Scissors",
+    "description": "• Bomb Turns Troll Bombs into bomb pickups"
+  },
+  "64": {
+    "name": "Rainbow Worm",
+    "description": "• Grants a random worm effect every 3 seconds"
+  },
+  "65": {
+    "name": "Tape Worm",
+    "description": "• ↑ Range +3 Range"
+  },
+  "66": {
+    "name": "Lazy Worm",
+    "description": "• ↓ Shotspeed -0.5 Shot speed"
+  },
+  "67": {
+    "name": "Cracked Dice",
+    "description": "• Taking damage has a 50% chance to trigger one of these effects:\n• Collectible105 D6\n• Collectible406 D8\n• Collectible285 D10\n• Collectible386 D12\n• Collectible166 D20"
+  },
+  "68": {
+    "name": "Super Magnet",
+    "description": "• Isaac attracts pickups and enemies"
+  },
+  "69": {
+    "name": "Faded Polaroid",
+    "description": "• Randomly camouflages Isaac\n• Confusion Confuses enemies\n• Can be used to open the \"Strange Door\" in \"Depths II\""
+  },
+  "70": {
+    "name": "Louse",
+    "description": "• Occasionally spawns a blue spider in hostile rooms"
+  },
+  "71": {
+    "name": "Bob's Bladder",
+    "description": "• Isaac's bombs leave damaging creep"
+  },
+  "72": {
+    "name": "Watch Battery",
+    "description": "• Battery 6.66% chance for the room clear reward to be a battery\n• Battery +10% chance for random pickups to be a battery\n• Battery 5% chance to add 1 charge to held active item when clearing a room"
+  },
+  "73": {
+    "name": "Blasting Cap",
+    "description": "• Bomb 10% chance for exploding bombs to drop a bomb pickup"
+  },
+  "74": {
+    "name": "Stud Finder",
+    "description": "• Ladder Room 0.5% chance to reveal a crawlspace when breaking a rock"
+  },
+  "75": {
+    "name": "Error",
+    "description": "• Grants a random trinket effect every room"
+  },
+  "76": {
+    "name": "Poker Chip",
+    "description": "• ↑ 50% chance for chests to spawn extra pickups\n• ↓ 50% chance for chests to contain a single fly"
+  },
+  "77": {
+    "name": "Blister",
+    "description": "• Increases knockback"
+  },
+  "78": {
+    "name": "Second Hand",
+    "description": "• Status effects applied to enemies last twice as long"
+  },
+  "79": {
+    "name": "Endless Nameless",
+    "description": "• Using a Rune rune, Card card or Pill pill has a 25% chance to spawn a copy of that rune, card or pill"
+  },
+  "80": {
+    "name": "Black Feather",
+    "description": "• ↑ Damage +0.5 Damage for each \"Evil up\" item held"
+  },
+  "81": {
+    "name": "Blind Rage",
+    "description": "• Invincibility frames after taking damage last twice as long"
+  },
+  "82": {
+    "name": "Golden Horse Shoe",
+    "description": "• Treasure Room Future Treasure Rooms have +15% chance to let Isaac choose between two items"
+  },
+  "83": {
+    "name": "Store Key",
+    "description": "• Shop Lets Isaac open Shops for free"
+  },
+  "84": {
+    "name": "Rib of Greed",
+    "description": "• Coin 5% more coins and fewer hearts from room clear rewards\n• Greed and Super Greed no longer appear in Shop Shops or Secret Room Secret Rooms"
+  },
+  "85": {
+    "name": "Karma",
+    "description": "• Donation Machine Using a Donation Machine has a 33% chance to:\n• Healing Red Heal 1 heart (40%)\n• Coin Give 1 coin (40%)\n• Luck Grant +1 luck (15%)\n• Beggar Spawn a Beggar (5%)"
+  },
+  "86": {
+    "name": "Lil Larva",
+    "description": "• Destroying poop spawns 1 blue fly"
+  },
+  "87": {
+    "name": "Mom's Locket",
+    "description": "• Healing Red Using a key heals half a heart\n• Heart Turns half hearts into full hearts"
+  },
+  "88": {
+    "name": "NO!",
+    "description": "• Prevents active items from spawning"
+  },
+  "89": {
+    "name": "Child Leash",
+    "description": "• Familiars stay closer to Isaac"
+  },
+  "90": {
+    "name": "Brown Cap",
+    "description": "• Poop explodes for 100 damage when destroyed"
+  },
+  "91": {
+    "name": "Meconium",
+    "description": "• 33% chance for Black Poops to spawn\n• Black Heart Destroying Black Poop has a 5% chance to spawn a Black Heart"
+  },
+  "92": {
+    "name": "Cracked Crown",
+    "description": "• ↑ x1.33 Stat multiplier (except fire rate) for the stats that are above 1 Speed speed, 2.73 Tears tears, 3.5 Damage damage, 6.5 Range range, 1 Shotspeed shot speed"
+  },
+  "93": {
+    "name": "Used Diaper",
+    "description": "• 15% chance per room for all fly enemies to become friendly"
+  },
+  "94": {
+    "name": "Fish Tail",
+    "description": "• Doubles all blue fly / spider spawns"
+  },
+  "95": {
+    "name": "Black Tooth",
+    "description": "• Poison 3% chance to shoot poison tooth tears\n• The tooth deals 2x Isaac's damage"
+  },
+  "96": {
+    "name": "Ouroboros Worm",
+    "description": "• ↑ +0.4 Tears\n• ↑ Range +1.5 Range\n• Spectral tears\n• Chance for homing tears\n• Luck 100% chance at 9 luck\n• Isaac's tears move quickly in a spiral pattern"
+  },
+  "97": {
+    "name": "Tonsil",
+    "description": "• Taking damage 12-20 times spawns a projectile blocking familiar\n• Disappears after spawning 2 familiars"
+  },
+  "98": {
+    "name": "Nose Goblin",
+    "description": "• 10% chance to shoot a sticky tear\n• 50% chance for it to be homing\n• Damage Boogers deal Isaac's damage once per second\n• Boogers stick for 10 seconds"
+  },
+  "99": {
+    "name": "Super Ball",
+    "description": "• 10% chance to shoot bouncing tears"
+  },
+  "100": {
+    "name": "Vibrant Bulb",
+    "description": "• Holding a fully charged active item grants:\n• ↑ Speed +0.25 Speed\n• ↑ Tears +0.2 Tears\n• ↑ Damage +0.5 Damage\n• ↑ Range +0.75 Range\n• ↑ Shotspeed +0.1 Shot speed\n• ↑ Luck +1 Luck"
+  },
+  "101": {
+    "name": "Dim Bulb",
+    "description": "• Holding a completely uncharged active item grants:\n• ↑ Speed +0.5 Speed\n• ↑ Tears +0.5 Tears\n• ↑ Damage +1.5 Damage\n• ↑ Range +1.5 Range\n• ↑ Shotspeed +0.3 Shot speed\n• ↑ Luck +2 Luck"
+  },
+  "102": {
+    "name": "Fragmented Card",
+    "description": "• Secret Room +1 extra Secret Room per floor while held"
+  },
+  "103": {
+    "name": "Equality!",
+    "description": "• Turns single pickups into double pickups when Isaac's Coin coin, Bomb bomb and Key key counts are equal"
+  },
+  "104": {
+    "name": "Wish Bone",
+    "description": "• 2% chance to get destroyed and spawn a pedestal item when hit"
+  },
+  "105": {
+    "name": "Bag Lunch",
+    "description": "• Collectible22 2% chance to get destroyed and spawn Lunch when hit"
+  },
+  "106": {
+    "name": "Lost Cork",
+    "description": "• Increases the radius of friendly creep"
+  },
+  "107": {
+    "name": "Crow Heart",
+    "description": "• Taking damage depletes Red Hearts before Soul/Black Hearts\n• Warning Taking Red Heart damage will reduce Devil/Angel Room chance"
+  },
+  "108": {
+    "name": "Walnut",
+    "description": "• Getting hit by 1-9 explosions destroys the trinket and drops a random Unknown Heart heart, Coin coin, Key key and Trinket trinket\n• Taking damage isn't required"
+  },
+  "109": {
+    "name": "Duct Tape",
+    "description": "• Familiars are stuck in place relative to Isaac's position"
+  },
+  "110": {
+    "name": "Silver Dollar",
+    "description": "• Shop Shops appear in the Womb and Corpse"
+  },
+  "111": {
+    "name": "Bloody Crown",
+    "description": "• Treasure Room Treasure Rooms appear in the Womb and Corpse"
+  },
+  "112": {
+    "name": "Pay To Win",
+    "description": "• Restock Machine Restock boxes always spawn in Treasure Room Treasure Rooms"
+  },
+  "113": {
+    "name": "Locust of War",
+    "description": "• Entering a hostile room spawns an exploding attack fly \n• The fly deals 2x Isaac's damage + explosion damage"
+  },
+  "114": {
+    "name": "Locust of Pestilence",
+    "description": "• Poison Entering a hostile room spawns a poison attack fly\n• The fly deals 2x Isaac's damage"
+  },
+  "115": {
+    "name": "Locust of Famine",
+    "description": "• Slow Entering a hostile room spawns a slowing attack fly\n• The fly deals 2x Isaac's damage"
+  },
+  "116": {
+    "name": "Locust of Death",
+    "description": "• Entering a hostile room spawns an attack fly\n• The fly deals 4x Isaac's damage"
+  },
+  "117": {
+    "name": "Locust of Conquest",
+    "description": "• Entering a hostile room spawns 1-4 attack flies\n• Each fly deals 2x Isaac's damage"
+  },
+  "118": {
+    "name": "Bat Wing",
+    "description": "• Timer Killing an enemy has a 5% chance to grant flight for the room"
+  },
+  "119": {
+    "name": "Stem Cell",
+    "description": "• Healing Red Entering a new floor heals half of Isaac's empty Red/Bone Hearts\n• Healing Red Heals half a heart minimum"
+  },
+  "120": {
+    "name": "Hairpin",
+    "description": "• Battery Entering an uncleared boss room fully recharges active items"
+  },
+  "121": {
+    "name": "Wooden Cross",
+    "description": "• Collectible313 Grants a Holy shield that prevents damage once per floor"
+  },
+  "122": {
+    "name": "Butter!",
+    "description": "• Using an active item drops it on a pedestal on the ground\n• Taking damage has a 2% chance to drop one of Isaac's passive items"
+  },
+  "123": {
+    "name": "Filigree Feather",
+    "description": "• Angel bosses drop angel items instead of Key Pieces"
+  },
+  "124": {
+    "name": "Door Stop",
+    "description": "• The last door used stays open"
+  },
+  "125": {
+    "name": "Extension Cord",
+    "description": "• Connects all familiars with beams of electricity\n• The beams deal 6 damage"
+  },
+  "126": {
+    "name": "Rotten Penny",
+    "description": "• Picking up a coin spawns a blue fly"
+  },
+  "127": {
+    "name": "Baby-Bender",
+    "description": "• Grants all familiars homing shots"
+  },
+  "128": {
+    "name": "Finger Bone",
+    "description": "• Empty Bone Heart Taking damage has a 4% chance to grant a Bone Heart"
+  },
+  "129": {
+    "name": "Jawbreaker",
+    "description": "• Damage 10% chance to shoot teeth that deal 3.2x Isaac's damage\n• Luck 100% chance at 9 luck"
+  },
+  "130": {
+    "name": "Chewed Pen",
+    "description": "• Slow 10% chance to shoot slowing tears\n• Luck 100% chance at 18 luck"
+  },
+  "131": {
+    "name": "Blessed Penny",
+    "description": "• Half Soul Heart Picking up a coin has a 17% chance to spawn a half Soul Heart\n• Higher chance from nickels and dimes"
+  },
+  "132": {
+    "name": "Broken Syringe",
+    "description": "• 25% chance to get a random syringe effect each room"
+  },
+  "133": {
+    "name": "Short Fuse",
+    "description": "• Isaac's bombs explode faster"
+  },
+  "134": {
+    "name": "Gigante Bean",
+    "description": "• Increases fart size"
+  },
+  "135": {
+    "name": "A Lighter",
+    "description": "• Burning Entering a room has a 20% chance to burn random enemies"
+  },
+  "136": {
+    "name": "Broken Padlock",
+    "description": "• Doors, key blocks and golden chests can be opened with explosions\n• Explosions can also open the \"Strange Door\" in \"Depths II\""
+  },
+  "137": {
+    "name": "Myosotis",
+    "description": "• Entering a new floor spawns up to 4 uncollected pickups from the previous floor in the starting room"
+  },
+  "138": {
+    "name": "'M",
+    "description": "• Using an active item rerolls it"
+  },
+  "139": {
+    "name": "Teardrop Charm",
+    "description": "• Luck +4 Luck towards luck-based tear effects"
+  },
+  "140": {
+    "name": "Apple of Sodom",
+    "description": "• Picking up Red Hearts can convert them into blue spiders\n• Works even while at full health\n• Effect may consume hearts needed for healing"
+  },
+  "141": {
+    "name": "Forgotten Lullaby",
+    "description": "• 2x Fire rate for familiars"
+  },
+  "142": {
+    "name": "Beth's Faith",
+    "description": "• Collectible584 Entering a new floor spawns 4 Book of Virtues wisps"
+  },
+  "143": {
+    "name": "Old Capacitor",
+    "description": "• Battery Prevents active item from charging by clearing a room\n• Battery Clearing a room has a 20% chance to spawn a battery\n• Luck 33% chance at 5 luck"
+  },
+  "144": {
+    "name": "Brain Worm",
+    "description": "• Tears turn 90 degrees to target enemies that they may have missed"
+  },
+  "145": {
+    "name": "Perfection",
+    "description": "• ↑ Luck +10 Luck up\n• Taking damage destroys the trinket"
+  },
+  "146": {
+    "name": "Devil's Crown",
+    "description": "• Red Treasure Room Treasure Room items are replaced with devil deals"
+  },
+  "147": {
+    "name": "Charged Penny",
+    "description": "• Battery Picking up a coin has a 17% chance to add 1 charge to the active item\n• Higher chance from nickels and dimes"
+  },
+  "148": {
+    "name": "Friendship Necklace",
+    "description": "• All familiars orbit around Isaac"
+  },
+  "149": {
+    "name": "Panic Button",
+    "description": "• Right before taking damage, uses the active item if it is charged"
+  },
+  "150": {
+    "name": "Blue Key",
+    "description": "• Locked doors can be opened for free, but Isaac has to clear a room from the Hush floor before accessing the room behind them"
+  },
+  "151": {
+    "name": "Flat File",
+    "description": "• Retracts most spikes, rendering them harmless\n• Also affects Cursed Room Curse Room doors, mimics and any spike obstacle"
+  },
+  "152": {
+    "name": "Telescope Lens",
+    "description": "• Planetarium Chance +9% Planetarium chance\n• Additional +15% chance if a Planetarium hasn't been entered yet\n• Planetariums can spawn in the Womb and Corpse"
+  },
+  "153": {
+    "name": "Mom's Lock",
+    "description": "• 25% chance for a random Mom item effect each room"
+  },
+  "154": {
+    "name": "Dice Bag",
+    "description": "• 50% chance per new room to grant a single use die consumable item\n• The die disappears when leaving\n• The die does not take up a pill/card slot"
+  },
+  "155": {
+    "name": "Holy Crown",
+    "description": "• Spawns a Treasure Room Treasure Room and Shop Shop in Cathedral"
+  },
+  "156": {
+    "name": "Mother's Kiss",
+    "description": "• Heart +1 Heart container while held"
+  },
+  "157": {
+    "name": "Torn Card",
+    "description": "• Every 15 shots, Isaac shoots an Collectible149 Ipecac + Collectible5 My Reflection tear with a very high range value"
+  },
+  "158": {
+    "name": "Torn Pocket",
+    "description": "• Taking damage makes Isaac drop 2 of his coins, keys or bombs\n• The pickups can be replaced with other variants, such as golden keys, nickels, dimes, etc."
+  },
+  "159": {
+    "name": "Gilded Key",
+    "description": "• Key +1 Key on pickup\n• Golden Chest Replaces all chests (except Old/Mega) with golden chests\n• Golden Chest Golden chests can contain extra cards, pills or trinkets"
+  },
+  "160": {
+    "name": "Lucky Sack",
+    "description": "• Grab Bag Entering a new floor spawns a sack"
+  },
+  "161": {
+    "name": "Wicked Crown",
+    "description": "• Spawns a Treasure Room Treasure Room and Shop Shop in Sheol"
+  },
+  "162": {
+    "name": "Azazel's Stump",
+    "description": "• Player7 Clearing a room has a 33% chance to turn the player into Azazel\n• Timer Effect lasts until clearing and leaving another room"
+  },
+  "163": {
+    "name": "Dingle Berry",
+    "description": "• All Dip (small poop) enemies are friendly\n• Clearing a room spawns 1 random Dip"
+  },
+  "164": {
+    "name": "Ring Cap",
+    "description": "• Bomb Spawns 1 extra bomb for each bomb placed"
+  },
+  "165": {
+    "name": "Nuh Uh!",
+    "description": "• On Womb and beyond, replaces all coin and key spawns with a bomb, heart, pill, card, trinket, battery, or enemy fly"
+  },
+  "166": {
+    "name": "Modeling Clay",
+    "description": "• 50% chance to grant the effect of a random passive item each room"
+  },
+  "167": {
+    "name": "Polished Bone",
+    "description": "• Friendly Clearing a room has a 25% chance to spawn a friendly Bony"
+  },
+  "168": {
+    "name": "Hollow Heart",
+    "description": "• Empty Bone Heart Entering a new floor grants +1 Bone Heart"
+  },
+  "169": {
+    "name": "Kid's Drawing",
+    "description": "• Guppy Counts as 1 item towards the Guppy transformation while held"
+  },
+  "170": {
+    "name": "Crystal Key",
+    "description": "• Collectible580 Clearing a room has a 33% chance to create a Red Key room\n• Lower chance to occur when in a red room"
+  },
+  "171": {
+    "name": "Keeper's Bargain",
+    "description": "• Devil Room 50% chance for devil deals to cost coins instead of hearts"
+  },
+  "172": {
+    "name": "Cursed Penny",
+    "description": "• Picking up a coin teleports Isaac to a random room\n• Can teleport to secret rooms"
+  },
+  "173": {
+    "name": "Your Soul",
+    "description": "• Devil Room Allows Isaac to take 1 Devil Room item for free\n• Warning The free Devil deal still affects Angel Room chance"
+  },
+  "174": {
+    "name": "Number Magnet",
+    "description": "• Devil Chance +10% Devil Room chance\n• Prevents Krampus from appearing in Devil Rooms\n• Devil Rooms are special variants with more deals, Black Hearts and enemies"
+  },
+  "175": {
+    "name": "Strange Key",
+    "description": "• Opens the door to the Hush floor regardless of the timer\n• Using Collectible297 Pandora's Box consumes the key and spawns 6 items from random pools"
+  },
+  "176": {
+    "name": "Lil Clot",
+    "description": "• Spawns a blood clot that mimics Isaac's movement\n• Copies Isaac's stats, tear effects and 35% of his damage\n• Respawns each room"
+  },
+  "177": {
+    "name": "Temporary Tattoo",
+    "description": "• Chest Clearing a Challenge Room Challenge Room spawns a chest\n• Clearing a Boss Rush Room Boss Challenge Room spawns an item"
+  },
+  "178": {
+    "name": "Swallowed M80",
+    "description": "• Taking damage has a 50% chance for Isaac to explode\n• Doesn't destroy Blood Donation Machines or Confessionals, while spawning pickups as if it did"
+  },
+  "179": {
+    "name": "RC Remote",
+    "description": "• Familiars mimic Isaac's movement\n• Hold the drop button (Button R T) to keep the familiars in place"
+  },
+  "180": {
+    "name": "Found Soul",
+    "description": "• Follows Isaac's movement and shoots spectral tears\n• Copies Isaac's stats, tear effects and 50% of his damage\n• Uses most active items when Isaac does\n• Dies in one hit\n• Respawns each floor"
+  },
+  "181": {
+    "name": "Expansion Pack",
+    "description": "• Using an active item triggers the effect of an additional 1-2 charge active item"
+  },
+  "182": {
+    "name": "Beth's Essence",
+    "description": "• Entering an Angel Room Angel Room spawns 5 wisps\n• Donating to Beggars has a 25% chance to spawn a wisp"
+  },
+  "183": {
+    "name": "The Twins",
+    "description": "• 50% chance to duplicate a familiar each room\n• Grants Collectible8 Brother Bobby or Collectible67 Sister Maggy if Isaac has no familiars"
+  },
+  "184": {
+    "name": "Adoption Papers",
+    "description": "• Shop Shops sell familiars for 10 coins"
+  },
+  "185": {
+    "name": "Cricket Leg",
+    "description": "• Killing an enemy has a 17% chance to spawn a random locust"
+  },
+  "186": {
+    "name": "Apollyon's Best Friend",
+    "description": "• Collectible706 Grants 1 Abyss locust"
+  },
+  "187": {
+    "name": "Broken Glasses",
+    "description": "• Treasure Room 50% chance of adding an extra blind item in Treasure Rooms\n• 50% chance to reveal the blind item in alt path Treasure Rooms"
+  },
+  "188": {
+    "name": "Ice Cube",
+    "description": "• Petrify Entering a room has a 20% chance to petrify random enemies\n• Freezing Killing a petrified enemy freezes it"
+  },
+  "189": {
+    "name": "Sigil of Baphomet",
+    "description": "• Killing an enemy makes Isaac invincible for 1 second\n• Invincibility stacks with successive enemy kills"
+  }
+}

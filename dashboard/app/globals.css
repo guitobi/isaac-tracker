@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=VT323&family=Patrick+Hand&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Silkscreen:wght@400;700&family=Patrick+Hand&family=VT323&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -8,7 +8,7 @@
   --color-isaac-blood: #8b0000;
   --color-isaac-gold: #c39832;
   
-  --font-pixel: "VT323", monospace;
+  --font-pixel: "Press Start 2P", "Silkscreen", monospace;
   --font-hand: "Patrick Hand", cursive;
 }
 
