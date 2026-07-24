@@ -1,35 +1,63 @@
 import bossesData from '../../public/data/bosses.json';
 
 const bossNameToIdMap: Record<string, string> = {};
+const allBossNames: { id: string; norm: string; cleanNorm: string }[] = [];
 
 for (const [id, name] of Object.entries(bossesData)) {
   const norm = name.trim().toLowerCase();
+  const cleanNorm = norm.replace(/^the\s+/, '');
   bossNameToIdMap[norm] = id;
-  // Also index without leading "the "
-  if (norm.startsWith('the ')) {
-    bossNameToIdMap[norm.replace(/^the\s+/, '')] = id;
+  bossNameToIdMap[cleanNorm] = id;
+  allBossNames.push({ id, norm, cleanNorm });
+}
+
+function cleanBossName(raw: string): string {
+  let name = raw.trim().toLowerCase();
+  // Remove parenthetical noise like (copy), (copy 1), etc.
+  name = name.replace(/\s*\([^)]*\)?/g, '');
+  // Remove trailing "copy" if unmatched parenthesis
+  name = name.replace(/\s+copy.*$/gi, '');
+  // Remove leading "the "
+  name = name.replace(/^the\s+/, '');
+  // Remove trailing numbers if space separated
+  name = name.replace(/\s+\d+$/g, '').trim();
+
+  // If string is repeated like "pinpin" or "monstromonstro"
+  if (name.length > 2 && name.length % 2 === 0) {
+    const halfLen = Math.floor(name.length / 2);
+    const firstHalf = name.slice(0, halfLen);
+    const secondHalf = name.slice(halfLen);
+    if (firstHalf === secondHalf) {
+      name = firstHalf;
+    }
   }
+
+  return name;
 }
 
 export function getBossImageUrl(bossName: string): string | null {
-  const norm = bossName.trim().toLowerCase();
+  if (!bossName) return null;
+
+  const cleaned = cleanBossName(bossName);
   
-  // 1. Direct match
-  if (bossNameToIdMap[norm]) {
-    return `/bosses/${bossNameToIdMap[norm]}.png`;
+  // 1. Direct match in map
+  if (bossNameToIdMap[cleaned]) {
+    return `/bosses/${bossNameToIdMap[cleaned]}.png`;
   }
   
-  // 2. Try removing leading "the "
-  const withoutThe = norm.replace(/^the\s+/, '');
-  if (bossNameToIdMap[withoutThe]) {
-    return `/bosses/${bossNameToIdMap[withoutThe]}.png`;
+  // 2. Check exact matches in normalized list
+  for (const item of allBossNames) {
+    if (item.cleanNorm === cleaned || item.norm === cleaned) {
+      return `/bosses/${item.id}.png`;
+    }
   }
-  
-  // 3. Try adding leading "the "
-  const withThe = `the ${norm}`;
-  if (bossNameToIdMap[withThe]) {
-    return `/bosses/${bossNameToIdMap[withThe]}.png`;
+
+  // 3. Substring match
+  for (const item of allBossNames) {
+    if (cleaned.length >= 3 && (item.cleanNorm.includes(cleaned) || cleaned.includes(item.cleanNorm))) {
+      return `/bosses/${item.id}.png`;
+    }
   }
-  
+
   return null;
 }

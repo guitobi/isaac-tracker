@@ -29,6 +29,18 @@ export default function RunDetailsPage() {
     );
   }
 
+  const uniqueItemObjects = run?.itemObjects
+    ? Array.from(new Map(run.itemObjects.map((item) => [item.id, item])).values())
+    : [];
+
+  const uniqueTrinketObjects = run?.trinketObjects
+    ? Array.from(new Map(run.trinketObjects.map((trinket) => [trinket.id, trinket])).values())
+    : [];
+
+  const uniqueBosses = run?.bosses
+    ? Array.from(new Set(run.bosses))
+    : [];
+
   return (
     <div className="min-h-screen p-8 max-w-4xl mx-auto flex flex-col gap-8">
       
@@ -43,9 +55,16 @@ export default function RunDetailsPage() {
       <header className="isaac-card p-8">
         <div className="flex justify-between items-start mb-6 border-b-4 border-black pb-4">
           <div>
-            <h1 className="font-hand text-5xl font-extrabold">
-              {run.character?.name || `Character #${run.characterId}`}
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="font-hand text-5xl font-extrabold">
+                {run.character?.name || `Character #${run.characterId}`}
+              </h1>
+              {run.character?.isTainted && (
+                <span className="px-2 py-1 text-sm font-pixel font-bold bg-purple-900 text-purple-200 border-2 border-black">
+                  TAINTED
+                </span>
+              )}
+            </div>
             {run.user?.username && (
               <p className="font-pixel text-xl text-gray-700 mt-1">Player: {run.user.username}</p>
             )}
@@ -70,7 +89,7 @@ export default function RunDetailsPage() {
           </div>
           <div className="border-4 border-black p-4 bg-[rgba(0,0,0,0.05)]">
             <p className="font-hand text-2xl font-bold">Items</p>
-            <p className="text-3xl font-pixel mt-1">{run.itemObjects ? run.itemObjects.length : 0}</p>
+            <p className="text-3xl font-pixel mt-1">{uniqueItemObjects.length}</p>
           </div>
         </div>
       </header>
@@ -80,8 +99,8 @@ export default function RunDetailsPage() {
         <h2 className="font-hand text-4xl font-bold mb-6 border-b-4 border-black pb-2">Items Collected</h2>
         
         <div className="flex gap-4 flex-wrap">
-          {run.itemObjects && run.itemObjects.length > 0 ? (
-            run.itemObjects.map((item, index) => {
+          {uniqueItemObjects.length > 0 ? (
+            uniqueItemObjects.map((item, index) => {
               const formattedName = formatItemName(item.id, item.name);
               return (
                 <div key={`item-${item.id}-${index}`} className="flex flex-col items-center border-2 border-black/20 p-2 bg-[rgba(0,0,0,0.02)] rounded w-24">
@@ -103,8 +122,8 @@ export default function RunDetailsPage() {
         <h2 className="font-hand text-4xl font-bold mb-6 border-b-4 border-black pb-2">Trinkets</h2>
         
         <div className="flex gap-4 flex-wrap">
-          {run.trinketObjects && run.trinketObjects.length > 0 ? (
-            run.trinketObjects.map((trinket, index) => {
+          {uniqueTrinketObjects.length > 0 ? (
+            uniqueTrinketObjects.map((trinket, index) => {
               const formattedName = formatItemName(trinket.id, trinket.name);
               return (
                 <div key={`trinket-${trinket.id}-${index}`} className="flex flex-col items-center border-2 border-black/20 p-2 bg-[rgba(0,0,0,0.02)] rounded w-24">
@@ -126,8 +145,8 @@ export default function RunDetailsPage() {
         <h2 className="font-hand text-4xl font-bold mb-6 border-b-4 border-black pb-2">Bosses Defeated</h2>
         
         <div className="flex gap-4 flex-wrap">
-          {run.bosses && run.bosses.length > 0 ? (
-            run.bosses.map((boss, index) => {
+          {uniqueBosses.length > 0 ? (
+            uniqueBosses.map((boss, index) => {
               const imageUrl = getBossImageUrl(boss);
               return (
                 <div key={`boss-${index}`} className="flex flex-col items-center border-2 border-black p-2 bg-[rgba(0,0,0,0.03)] min-w-[80px]">

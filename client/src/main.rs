@@ -25,6 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let trinket_regex = Regex::new(r"Adding trinket (\d+)").unwrap();
     let regex_boss_room = Regex::new(r"Room 5\.\d+\((.+?)\)").unwrap();
     let boss_death_regex = Regex::new(r"deathspawn_boss").unwrap();
+    let victory_regex = Regex::new(r"(?i)cutscene|show ending|ending\s+\d+|beast|mega satan|delirium|mother|ultra greed").unwrap();
 
     lines.add_file(path).await?;
 
@@ -37,6 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut current_trinkets: Vec<i32> = Vec::new();
     let mut current_room_boss: Option<String> = None;
     let mut current_bosses: Vec<String> = Vec::new();
+    let mut current_is_victory: bool = false;
 
     let mut api_client = api::ApiClient::new();
 
@@ -127,53 +129,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(captures) = item_regex.captures(line.line()) {
             let item_id = captures[1].parse::<i32>().unwrap_or(0);
-            current_items.push(item_id);
-            println!("[INFO] Picked up item: {}", item_id);
+            if !current_items.contains(&item_id) {
+                current_items.push(item_id);
+                println!("[INFO] Picked up item: {}", item_id);
 
-            // Real-time sync item to active run on server
-            if let Some(run_id) = current_run_id {
-                let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
-                let _ = api_client.update_run(
-                    run_id,
-                    false,
-                    current_items.clone(),
-                    current_trinkets.clone(),
-                    current_bosses.clone(),
-                    duration
-                ).await;
-            }
-        }
-
-        if let Some(captures) = trinket_regex.captures(line.line()) {
-            let trinket_id = captures[1].parse::<i32>().unwrap_or(0);
-            current_trinkets.push(trinket_id);
-            println!("[INFO] Picked up trinket: {}", trinket_id);
-
-            // Real-time sync trinket to active run on server
-            if let Some(run_id) = current_run_id {
-                let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
-                let _ = api_client.update_run(
-                    run_id,
-                    false,
-                    current_items.clone(),
-                    current_trinkets.clone(),
-                    current_bosses.clone(),
-                    duration
-                ).await;
-            }
-        }
-
-        if let Some(captures) = regex_boss_room.captures(line.line()) {
-            let boss = captures[1].to_string();
-            println!("[INFO] Boss found: {}", boss);
-            current_room_boss = Some(boss);
-        }
-
-        if boss_death_regex.is_match(line.line()) {
-            if let Some(boss_name) = current_room_boss.take() {
-                println!("[INFO] Boss is dead: {}", boss_name);
-                current_bosses.push(boss_name);
-
+                // Real-time sync item to active run on server
                 if let Some(run_id) = current_run_id {
                     let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
                     let _ = api_client.update_run(
@@ -188,6 +148,63 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
+        if let Some(captures) = trinket_regex.captures(line.line()) {
+            let trinket_id = captures[1].parse::<i32>().unwrap_or(0);
+            if !current_trinkets.contains(&trinket_id) {
+                current_trinkets.push(trinket_id);
+                println!("[INFO] Picked up trinket: {}", trinket_id);
+
+                // Real-time sync trinket to active run on server
+                if let Some(run_id) = current_run_id {
+                    let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
+                    let _ = api_client.update_run(
+                        run_id,
+                        false,
+                        current_items.clone(),
+                        current_trinkets.clone(),
+                        current_bosses.clone(),
+                        duration
+                    ).await;
+                }
+            }
+        }
+
+        if let Some(captures) = regex_boss_room.captures(line.line()) {
+            let raw_boss = captures[1].to_string();
+            let boss = raw_boss
+                .split('(').next().unwrap_or(&raw_boss)
+                .trim()
+                .to_string();
+            println!("[INFO] Boss found: {} (raw: {})", boss, raw_boss);
+            current_room_boss = Some(boss);
+        }
+
+        if boss_death_regex.is_match(line.line()) {
+            if let Some(boss_name) = current_room_boss.take() {
+                println!("[INFO] Boss is dead: {}", boss_name);
+                if !current_bosses.contains(&boss_name) {
+                    current_bosses.push(boss_name);
+
+                    if let Some(run_id) = current_run_id {
+                        let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
+                        let _ = api_client.update_run(
+                            run_id,
+                            false,
+                            current_items.clone(),
+                            current_trinkets.clone(),
+                            current_bosses.clone(),
+                            duration
+                        ).await;
+                    }
+                }
+            }
+        }
+
+        if victory_regex.is_match(line.line()) {
+            println!("[INFO] Victory condition detected in log!");
+            current_is_victory = true;
+        }
+
         if let Some(captures) = regex_seed.captures(line.line()) {
             let seed = captures[1].to_string();
             println!("[INFO] Seed found: {}", seed);
@@ -198,7 +215,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("[INFO] Quick restart detected! Closing previous run #{}...", old_run_id);
                 if let Err(e) = api_client.update_run(
                     old_run_id,
-                    false,
+                    current_is_victory,
                     current_items.clone(),
                     current_trinkets.clone(),
                     current_bosses.clone(),
@@ -212,6 +229,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             current_items.clear();
             current_trinkets.clear();
             current_bosses.clear();
+            current_is_victory = false;
             current_seed = Some(seed);
         }
 
@@ -255,13 +273,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             if let Some(run_id) = target_run_id {
                 let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(30);
-                match api_client.update_run(run_id, false, current_items.clone(), current_trinkets.clone(), current_bosses.clone(), duration).await {
+                match api_client.update_run(run_id, current_is_victory, current_items.clone(), current_trinkets.clone(), current_bosses.clone(), duration).await {
                     Ok(_) => {
-                        println!("[SUCCESS] Run #{} updated on server (Game Over)!", run_id);
+                        println!("[SUCCESS] Run #{} updated on server (Victory: {})!", run_id, current_is_victory);
                         current_run_id = None;
                         current_items.clear();
                         current_trinkets.clear();
                         current_bosses.clear();
+                        current_is_victory = false;
                     },
                     Err(e) => println!("[ERROR] Failed to update run #{}: {}", run_id, e),
                 }

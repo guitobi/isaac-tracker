@@ -90,8 +90,9 @@ export class RunsService {
   }
 
   async update(id: number, updateRunDto: UpdateRunDto) {
-    const items = updateRunDto.items ?? [];
-    const trinkets = updateRunDto.trinkets ?? [];
+    const items = updateRunDto.items ? Array.from(new Set(updateRunDto.items)) : [];
+    const trinkets = updateRunDto.trinkets ? Array.from(new Set(updateRunDto.trinkets)) : [];
+    const bosses = updateRunDto.bosses ? Array.from(new Set(updateRunDto.bosses)) : undefined;
     const isVictory = updateRunDto.isVictory ?? false;
 
     // Discard run if ended without picking up any items or trinkets
@@ -106,7 +107,12 @@ export class RunsService {
 
     return this.prisma.run.update({
       where: { id },
-      data: updateRunDto,
+      data: {
+        ...updateRunDto,
+        items,
+        trinkets,
+        ...(bosses ? { bosses } : {}),
+      },
     });
   }
 

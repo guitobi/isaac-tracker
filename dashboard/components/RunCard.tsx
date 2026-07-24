@@ -1,77 +1,78 @@
 import { Run } from "../types";
-import { ItemIcon } from "./ItemIcon";
 import Link from "next/link";
-import Image from "next/image";
+
 interface RunCardProps {
   run: Run;
 }
 
 export function RunCard({ run }: RunCardProps) {
+  const durationMin = Math.floor((run.duration || 0) / 60);
+  const durationSec = (run.duration || 0) % 60;
+
+  const itemsCount = new Set(run.items || run.itemObjects?.map((i) => i.id) || []).size;
+  const trinketsCount = new Set(run.trinkets || run.trinketObjects?.map((t) => t.id) || []).size;
+  const bossesCount = new Set(run.bosses || []).size;
+
+  const charName = run.character?.name || `Character #${run.characterId}`;
+  const isTainted = run.character?.isTainted;
+
   return (
-    <Link href={`/runs/${run.id}`} className="block">
-      <div className="isaac-card p-5 transition-transform hover:-translate-y-2 hover:rotate-1 h-full flex flex-col justify-between">
+    <Link href={`/runs/${run.id}`} className="block h-full">
+      <div className="isaac-card p-5 transition-transform hover:-translate-y-1 hover:rotate-1 h-full flex flex-col justify-between">
         <div>
-          <div className="flex justify-between items-start mb-2 border-b-4 border-black pb-2">
+          <div className="flex justify-between items-start mb-3 border-b-4 border-black pb-2">
             <div>
-              <h3 className="font-hand font-bold text-3xl">
-                {run.character?.name || `Character #${run.characterId}`}
-              </h3>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h3 className="font-hand font-bold text-3xl text-black">
+                  {charName}
+                </h3>
+                {isTainted && (
+                  <span className="px-1.5 py-0.5 text-xs font-pixel font-bold bg-purple-900 text-white border-2 border-black">
+                    TAINTED
+                  </span>
+                )}
+              </div>
               {run.user?.username && (
-                <p className="font-pixel text-sm text-gray-700">
+                <p className="font-pixel text-xs font-bold text-black/80 mt-1">
                   Player: {run.user.username}
                 </p>
               )}
-              <p className="font-pixel text-xl text-gray-800">
+              <p className="font-pixel text-sm font-bold text-black mt-1">
                 SEED: {run.seed}
               </p>
             </div>
             <span
-              className={`px-2 py-1 text-xl font-bold border-4 border-black ${run.isVictory ? "bg-[#c39832] text-black" : "bg-[#8b0000] text-white"}`}
+              className={`px-2.5 py-1 text-xl font-bold border-4 border-black shrink-0 ${
+                run.isVictory ? "bg-[#c39832] text-black" : "bg-[#8b0000] text-white"
+              }`}
             >
               {run.isVictory ? "VICTORY" : "DEATH"}
             </span>
           </div>
 
-          <div className="mt-4">
-            <p className="font-hand text-xl font-bold mb-2">Items:</p>
-            <div className="flex gap-2 flex-wrap">
-              {run.itemObjects &&
-                run.itemObjects.map((item, index) => (
-                  <ItemIcon key={`${item.id}-${index}`} item={item} />
-                ))}
-              {(!run.itemObjects || run.itemObjects.length === 0) && (
-                <p className="font-hand text-xl text-gray-600">
-                  No items... yet.
-                </p>
-              )}
+          <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="border-2 border-black p-2 bg-black/10 text-center">
+              <p className="font-hand text-xl font-bold text-black">Time</p>
+              <p className="font-pixel text-lg font-bold text-black">{durationMin}m {durationSec}s</p>
+            </div>
+            <div className="border-2 border-black p-2 bg-black/10 text-center">
+              <p className="font-hand text-xl font-bold text-black">Items</p>
+              <p className="font-pixel text-lg font-bold text-black">{itemsCount}</p>
+            </div>
+            <div className="border-2 border-black p-2 bg-black/10 text-center">
+              <p className="font-hand text-xl font-bold text-black">Trinkets</p>
+              <p className="font-pixel text-lg font-bold text-black">{trinketsCount}</p>
+            </div>
+            <div className="border-2 border-black p-2 bg-black/10 text-center">
+              <p className="font-hand text-xl font-bold text-black">Bosses</p>
+              <p className="font-pixel text-lg font-bold text-black">{bossesCount}</p>
             </div>
           </div>
+        </div>
 
-          <div className="mt-4">
-            <p className="font-hand text-xl font-bold mb-2">Trinkets:</p>
-            <div className="flex gap-2 flex-wrap">
-              {run.trinkets &&
-                run.trinkets.map((trinketId, index) => (
-                  <Image
-                    key={`trinket-${trinketId}-${index}`}
-                    src={`/trinkets/${trinketId}.png`}
-                    alt={`Trinket ${trinketId}`}
-                    width={40}
-                    height={40}
-                    unoptimized
-                    className="w-10 h-10 object-contain drop-shadow-md"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).srcset = "";
-                      (e.target as HTMLImageElement).src =
-                        "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-                    }}
-                  />
-                ))}
-              {(!run.trinkets || run.trinkets.length === 0) && (
-                <p className="font-hand text-xl text-gray-600">No trinkets.</p>
-              )}
-            </div>
-          </div>
+        <div className="mt-4 pt-2 border-t-2 border-black/20 flex justify-between items-center text-xs font-pixel text-black font-bold">
+          <span>Run #{run.id}</span>
+          <span className="text-[#8b0000] font-bold group-hover:underline">Details &rarr;</span>
         </div>
       </div>
     </Link>
