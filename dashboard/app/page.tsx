@@ -6,7 +6,8 @@ import { Header } from '../components/Header';
 import { RunCard } from '../components/RunCard';
 import { StatsBanner } from '../components/StatsBanner';
 import { RunFilters, ResultFilterType } from '../components/RunFilters';
-import { calculateDashboardStats } from './lib/stats';
+import { calculateDashboardStats, calculateCharacterStats } from './lib/stats';
+import { CharacterStats } from '../components/CharacterStats';
 import { CharacterInfo } from '../types';
 
 export default function Home() {
@@ -17,6 +18,7 @@ export default function Home() {
   const [searchTerm, setSearchTerm] = useState('');
 
   const stats = useMemo(() => calculateDashboardStats(runs), [runs]);
+  const characterStats = useMemo(() => calculateCharacterStats(runs), [runs]);
 
   const uniqueCharacters = useMemo(() => {
     const map = new Map<number, CharacterInfo>();
@@ -61,6 +63,14 @@ export default function Home() {
       <Header isLoading={isLoading} runCount={runs.length} />
 
       {!isLoading && runs.length > 0 && <StatsBanner stats={stats} />}
+
+      {!isLoading && runs.length > 0 && (
+        <CharacterStats
+          stats={characterStats}
+          selectedCharacterId={selectedCharacterId}
+          onSelectCharacter={setSelectedCharacterId}
+        />
+      )}
 
       <RunFilters
         resultFilter={resultFilter}

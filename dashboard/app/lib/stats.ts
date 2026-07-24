@@ -1,4 +1,4 @@
-import { Run, ItemInfo } from '../../types';
+import { Run, ItemInfo, CharacterInfo } from "../../types";
 
 export interface DashboardStats {
   totalRuns: number;
@@ -8,6 +8,16 @@ export interface DashboardStats {
   winStreak: number;
   avgDurationSec: number;
   topWinningItems: { item: ItemInfo; count: number }[];
+}
+
+export interface CharacterStats {
+  characterId: number;
+  character?: CharacterInfo;
+  totalRuns: number;
+  victories: number;
+  deaths: number;
+  winRate: number;
+  winStreak: number;
 }
 
 export function calculateDashboardStats(runs: Run[]): DashboardStats {
@@ -49,7 +59,7 @@ export function calculateDashboardStats(runs: Run[]): DashboardStats {
 
     // Deduplicate items per run
     const uniqueItemsInRun = Array.from(
-      new Map(run.itemObjects.map((i) => [i.id, i])).values()
+      new Map(run.itemObjects.map((i) => [i.id, i])).values(),
     );
 
     for (const item of uniqueItemsInRun) {
@@ -76,3 +86,46 @@ export function calculateDashboardStats(runs: Run[]): DashboardStats {
     topWinningItems,
   };
 }
+
+export const calculateCharacterStats = (runs: Run[]): CharacterStats[] => {
+  const grouped = new Map<number, Run[]>();
+  const result: CharacterStats[] = [];
+
+  for (const run of runs) {
+    if (!grouped.has(run.characterId)) {
+      grouped.set(run.characterId, []);
+    }
+    const characterRun = grouped.get(run.characterId);
+    characterRun?.push(run);
+  }
+
+  for (const [characterId, charRuns] of grouped.entries()) {
+    const totalRuns = charRuns.length;
+    const victories = charRuns.filter((run) => run.isVictory).length;
+    const deaths = totalRuns - victories;
+    const winRate =
+      totalRuns > 0 ? Math.round((victories / totalRuns) * 100) : 0;
+
+    let winStreak = 0;
+    for (const run of charRuns) {
+      if (run.isVictory) winStreak++;
+      if (!run.isVictory) break;
+    }
+
+    const character = charRuns[0]?.character;
+
+    const characterStats = {
+      totalRuns,
+      victories,
+      deaths,
+      winRate,
+      winStreak,
+      characterId,
+      character,
+    };
+
+    result.push(characterStats);
+  }
+
+  return result.sort((a, b) => b.totalRuns - a.totalRuns);
+};
