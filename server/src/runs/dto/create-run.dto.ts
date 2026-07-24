@@ -3,4 +3,7 @@ export class CreateRunDto {
   isVictory!: boolean;
   duration!: number;
   characterId!: number;
+  finalBoss?: string;
+  deathStage?: string;
+  causeOfDeath?: string;
 }

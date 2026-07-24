@@ -34,6 +34,9 @@ model Run {
   duration    Int
   trinkets    Int[]     @default([])
   bosses      String[]  @default([])
+  finalBoss   String?
+  deathStage  String?
+  causeOfDeath String?
   userId      Int
   user        User      @relation(fields: [userId], references: [id])
   characterId Int
@@ -45,6 +48,7 @@ model Item {
   name        String
   description String
   image       String
+  quality     Int?
 }
 
 model Trinket {

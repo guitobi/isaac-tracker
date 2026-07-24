@@ -3,6 +3,7 @@ export interface ItemInfo {
   name: string;
   description: string;
   image: string;
+  quality?: number;
 }
 
 export interface CharacterInfo {
@@ -29,5 +30,7 @@ export interface Run {
   trinkets: number[];
   trinketObjects?: ItemInfo[];
   bosses?: string[];
+  finalBoss?: string;
+  deathStage?: string;
+  causeOfDeath?: string;
 }
-

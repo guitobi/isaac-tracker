@@ -9,8 +9,12 @@ export function RunCard({ run }: RunCardProps) {
   const durationMin = Math.floor((run.duration || 0) / 60);
   const durationSec = (run.duration || 0) % 60;
 
-  const itemsCount = new Set(run.items || run.itemObjects?.map((i) => i.id) || []).size;
-  const trinketsCount = new Set(run.trinkets || run.trinketObjects?.map((t) => t.id) || []).size;
+  const itemsCount = new Set(
+    run.items || run.itemObjects?.map((i) => i.id) || [],
+  ).size;
+  const trinketsCount = new Set(
+    run.trinkets || run.trinketObjects?.map((t) => t.id) || [],
+  ).size;
   const bossesCount = new Set(run.bosses || []).size;
 
   const charName = run.character?.name || `Character #${run.characterId}`;
@@ -40,10 +44,28 @@ export function RunCard({ run }: RunCardProps) {
               <p className="font-pixel text-sm font-bold text-black mt-1">
                 SEED: {run.seed}
               </p>
+              {run.isVictory && run.finalBoss && (
+                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-isaac-gold/20 border-2 border-isaac-gold rounded text-xs font-pixel font-bold text-[#4a3800]">
+                  <span>🏆</span>
+                  <span>Defeated: {run.finalBoss}</span>
+                </div>
+              )}
+              {!run.isVictory && (run.deathStage || run.causeOfDeath) && (
+                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-isaac-blood/10 border-2 border-isaac-blood rounded text-xs font-pixel font-bold text-isaac-blood">
+                  <span>☠️</span>
+                  <span>
+                    {run.causeOfDeath
+                      ? `Killed by ${run.causeOfDeath} on ${run.deathStage || "Unknown"}`
+                      : `Died on: ${run.deathStage}`}
+                  </span>
+                </div>
+              )}
             </div>
             <span
               className={`px-2.5 py-1 text-xl font-bold border-4 border-black shrink-0 ${
-                run.isVictory ? "bg-[#c39832] text-black" : "bg-[#8b0000] text-white"
+                run.isVictory
+                  ? "bg-isaac-gold text-black"
+                  : "bg-isaac-blood text-white"
               }`}
             >
               {run.isVictory ? "VICTORY" : "DEATH"}
@@ -53,26 +75,36 @@ export function RunCard({ run }: RunCardProps) {
           <div className="grid grid-cols-2 gap-3 mt-4">
             <div className="border-2 border-black p-2 bg-black/10 text-center">
               <p className="font-hand text-xl font-bold text-black">Time</p>
-              <p className="font-pixel text-lg font-bold text-black">{durationMin}m {durationSec}s</p>
+              <p className="font-pixel text-lg font-bold text-black">
+                {durationMin}m {durationSec}s
+              </p>
             </div>
             <div className="border-2 border-black p-2 bg-black/10 text-center">
               <p className="font-hand text-xl font-bold text-black">Items</p>
-              <p className="font-pixel text-lg font-bold text-black">{itemsCount}</p>
+              <p className="font-pixel text-lg font-bold text-black">
+                {itemsCount}
+              </p>
             </div>
             <div className="border-2 border-black p-2 bg-black/10 text-center">
               <p className="font-hand text-xl font-bold text-black">Trinkets</p>
-              <p className="font-pixel text-lg font-bold text-black">{trinketsCount}</p>
+              <p className="font-pixel text-lg font-bold text-black">
+                {trinketsCount}
+              </p>
             </div>
             <div className="border-2 border-black p-2 bg-black/10 text-center">
               <p className="font-hand text-xl font-bold text-black">Bosses</p>
-              <p className="font-pixel text-lg font-bold text-black">{bossesCount}</p>
+              <p className="font-pixel text-lg font-bold text-black">
+                {bossesCount}
+              </p>
             </div>
           </div>
         </div>
 
         <div className="mt-4 pt-2 border-t-2 border-black/20 flex justify-between items-center text-xs font-pixel text-black font-bold">
           <span>Run #{run.id}</span>
-          <span className="text-[#8b0000] font-bold group-hover:underline">Details &rarr;</span>
+          <span className="text-isaac-blood font-bold group-hover:underline">
+            Details &rarr;
+          </span>
         </div>
       </div>
     </Link>

@@ -18,6 +18,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut lines = MuxedLines::new()?;
     let path = "C:/Users/Administrator/Documents/My Games/Binding of Isaac Repentance+/log.txt";
 
+    const FINAL_BOSSES: &[&str] = &["The Beast", "Mother", "Delirium", "Mega Satan", "Ultra Greed", "Ultra Greedier", "Isaac", "Satan", "The Lamb", "It Lives"];    
+
     let regex_seed = Regex::new(r"RNG Start Seed: ([a-zA-Z0-9 ]+)").unwrap();
     let regex_player = Regex::new(r"(?:Subtype\s+|Subtype\()\s*(\d+)").unwrap();
     let regex_death = Regex::new(r"Game Over").unwrap();
@@ -26,6 +28,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let regex_boss_room = Regex::new(r"Room 5\.\d+\((.+?)\)").unwrap();
     let boss_death_regex = Regex::new(r"deathspawn_boss").unwrap();
     let victory_regex = Regex::new(r"(?i)cutscene|show ending|ending\s+\d+|beast|mega satan|delirium|mother|ultra greed").unwrap();
+    let stage_regex = Regex::new(r"load stage \d+:\s*(.*?)\s*\(mode \d+\)").unwrap();                                                                               
 
     lines.add_file(path).await?;
 
@@ -39,6 +42,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut current_room_boss: Option<String> = None;
     let mut current_bosses: Vec<String> = Vec::new();
     let mut current_is_victory: bool = false;
+    let mut current_final_boss: Option<String> = None;
+    let mut current_death_stage: Option<String> = None;
+    let mut current_cause_of_death: Option<String> = None;
 
     let mut api_client = api::ApiClient::new();
 
@@ -127,6 +133,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     while let Ok(Some(line)) = lines.next_line().await {
         println!("{}", line.line());
 
+        if let Some(captures) = stage_regex.captures(line.line()) {
+            let stage = captures[1].trim().to_string();
+            println!("[INFO] Stage loaded: {}", stage);
+            current_death_stage = Some(stage);
+        }
+
         if let Some(captures) = item_regex.captures(line.line()) {
             let item_id = captures[1].parse::<i32>().unwrap_or(0);
             if !current_items.contains(&item_id) {
@@ -142,7 +154,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         current_items.clone(),
                         current_trinkets.clone(),
                         current_bosses.clone(),
-                        duration
+                        duration,
+                        None,
+                        None,
+                        None
                     ).await;
                 }
             }
@@ -163,7 +178,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         current_items.clone(),
                         current_trinkets.clone(),
                         current_bosses.clone(),
-                        duration
+                        duration,
+                        None,
+                        None,
+                        None
                     ).await;
                 }
             }
@@ -182,6 +200,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if boss_death_regex.is_match(line.line()) {
             if let Some(boss_name) = current_room_boss.take() {
                 println!("[INFO] Boss is dead: {}", boss_name);
+
+                if FINAL_BOSSES.contains(&&boss_name.as_str()) {
+                    current_final_boss = Some(boss_name.clone());
+                }                 
+
                 if !current_bosses.contains(&boss_name) {
                     current_bosses.push(boss_name);
 
@@ -193,7 +216,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                             current_items.clone(),
                             current_trinkets.clone(),
                             current_bosses.clone(),
-                            duration
+                            duration,
+                            current_final_boss.clone(),
+                            current_death_stage.clone(),
+                            current_cause_of_death.clone()
                         ).await;
                     }
                 }
@@ -219,7 +245,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     current_items.clone(),
                     current_trinkets.clone(),
                     current_bosses.clone(),
-                    duration
+                    duration,
+                    None,
+                    None,
+                    None
                 ).await {
                     println!("[ERROR] Failed to close restarted run #{}: {}", old_run_id, e);
                 }
@@ -231,6 +260,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             current_bosses.clear();
             current_is_victory = false;
             current_seed = Some(seed);
+            current_cause_of_death = None;
+            current_final_boss = None;
+            current_death_stage = None;
         }
 
         if let Some(captures) = regex_player.captures(line.line()) {
@@ -273,7 +305,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             if let Some(run_id) = target_run_id {
                 let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(30);
-                match api_client.update_run(run_id, current_is_victory, current_items.clone(), current_trinkets.clone(), current_bosses.clone(), duration).await {
+                match api_client.update_run(run_id, current_is_victory, current_items.clone(), current_trinkets.clone(), current_bosses.clone(), duration, current_final_boss.clone(), current_death_stage.clone(), current_cause_of_death.clone()).await {
                     Ok(_) => {
                         println!("[SUCCESS] Run #{} updated on server (Victory: {})!", run_id, current_is_victory);
                         current_run_id = None;
