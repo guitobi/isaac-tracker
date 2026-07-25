@@ -1,7 +1,7 @@
 ; Inno Setup Script for Isaac Tracker Desktop Client
 
 #define MyAppName "Isaac Tracker"
-#define MyAppVersion "0.1.4"
+#define MyAppVersion "0.1.5"
 #define MyAppPublisher "Isaac Tracker Team"
 #define MyAppURL "https://isaa-tracker.vercel.app/"
 #define MyAppExeName "isaac-tracker.exe"
@@ -34,8 +34,8 @@ Name: "autostart"; Description: "Run Isaac Tracker automatically when Windows st
 Source: "..\client\target\release\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; IconIndex: 0
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\{#MyAppExeName}"; IconIndex: 0; Tasks: desktopicon
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "IsaacTracker"; ValueData: """{app}\{#MyAppExeName}"""; Tasks: autostart

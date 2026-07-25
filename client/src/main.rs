@@ -70,6 +70,8 @@ fn get_isaac_log_path() -> std::path::PathBuf {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
 
+    let handle = tokio::runtime::Handle::current();
+
     let entry_check = Entry::new("isaac-tracker", "default").ok();
     let current_username = entry_check.as_ref()
         .and_then(|e| e.get_password().ok())
@@ -82,7 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Run TrayItem and Win32 message pump on a dedicated OS thread
     let tray_username = current_username.clone();
     std::thread::spawn(move || {
-        if let Ok(mut tray_item) = TrayItem::new("Isaac Tracker", IconSource::Resource("my-icon")) {
+        if let Ok(mut tray_item) = TrayItem::new("Isaac Tracker", IconSource::Resource("1")) {
             let label = format!("Isaac Tracker ({})", tray_username);
             let _ = tray_item.add_label(&label);
 
@@ -103,8 +105,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let _ = set_autostart(!currently_enabled);
             });
 
-            let _ = tray_item.add_menu_item("Check for Updates", || {
-                tokio::spawn(async {
+            let handle_clone = handle.clone();
+            let _ = tray_item.add_menu_item("Check for Updates", move || {
+                handle_clone.spawn(async move {
+                    update::show_info_box("Isaac Tracker", "Checking for updates...");
                     if let Some((tag, download_url)) = update::check_for_updates().await {
                         update::show_info_box("Isaac Tracker", &format!("New version v{} available! Downloading update...", tag));
                         if let Err(e) = update::download_and_update(&download_url).await {
