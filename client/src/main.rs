@@ -70,16 +70,16 @@ fn get_isaac_log_path() -> std::path::PathBuf {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
 
-    // Safely attempt tray initialization immediately on app launch
-    let _tray = match TrayItem::new("Isaac Tracker", IconSource::Resource("my-icon")) {
-        Ok(mut tray_item) => {
-            tray_item.add_label("Isaac Tracker (Starting...)").ok();
+    // Run TrayItem and Win32 message pump on a dedicated OS thread
+    std::thread::spawn(|| {
+        if let Ok(mut tray_item) = TrayItem::new("Isaac Tracker", IconSource::Resource("my-icon")) {
+            let _ = tray_item.add_label("Isaac Tracker");
 
-            tray_item.add_menu_item("Open Dashboard", || {
+            let _ = tray_item.add_menu_item("Open Dashboard", || {
                 let _ = std::process::Command::new("cmd")
                     .args(["/C", "start", "https://isaa-tracker.vercel.app/"])
                     .spawn();
-            }).ok();
+            });
 
             let autostart_label = if is_autostart_enabled() {
                 "Autostart: Enabled (Click to Disable)"
@@ -87,12 +87,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 "Autostart: Disabled (Click to Enable)"
             };
 
-            tray_item.add_menu_item(autostart_label, || {
+            let _ = tray_item.add_menu_item(autostart_label, || {
                 let currently_enabled = is_autostart_enabled();
                 let _ = set_autostart(!currently_enabled);
-            }).ok();
+            });
 
-            tray_item.add_menu_item("Check for Updates", || {
+            let _ = tray_item.add_menu_item("Check for Updates", || {
                 tokio::spawn(async {
                     if let Some((tag, download_url)) = update::check_for_updates().await {
                         update::show_info_box("Isaac Tracker", &format!("New version v{} available! Downloading update...", tag));
@@ -103,19 +103,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                         update::show_info_box("Isaac Tracker", &format!("You are running the latest version (v{})!", update::CURRENT_VERSION));
                     }
                 });
-            }).ok();
+            });
 
-            tray_item.add_menu_item("Quit", || {
+            let _ = tray_item.add_menu_item("Quit", || {
                 std::process::exit(0);
-            }).ok();
+            });
 
-            Some(tray_item)
-        },
-        Err(e) => {
-            println!("[WARN] System tray unavailable: {}. Continuing in background mode.", e);
-            None
+            // Keep Win32 event message loop alive for system tray interaction
+            #[cfg(target_os = "windows")]
+            unsafe {
+                use windows_sys::Win32::UI::WindowsAndMessaging::{GetMessageW, DispatchMessageW, TranslateMessage, MSG};
+                let mut msg: MSG = std::mem::zeroed();
+                while GetMessageW(&mut msg, std::ptr::null_mut(), 0, 0) > 0 {
+                    TranslateMessage(&msg);
+                    DispatchMessageW(&msg);
+                }
+            }
         }
-    };
+    });
 
     let path = get_isaac_log_path();
 
