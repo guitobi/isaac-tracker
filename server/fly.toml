@@ -1,14 +1,19 @@
-app = "isaac-tracker-server"
-primary_region = "fra"
+# fly.toml app configuration file generated for isaac-tracker on 2026-07-25T15:07:47Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'isaac-tracker'
+primary_region = 'ams'
 
 [build]
-  dockerfile = "Dockerfile"
+  dockerfile = 'Dockerfile'
 
 [env]
-  PORT = "3000"
+  PORT = '3000'
 
 [http_service]
-  internal_port = 3000
+  internal_port = 8080
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
@@ -19,3 +24,4 @@ primary_region = "fra"
   memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
+  memory_mb = 256
