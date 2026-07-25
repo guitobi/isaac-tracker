@@ -95,10 +95,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             tray_item.add_menu_item("Check for Updates", || {
                 tokio::spawn(async {
                     if let Some((tag, download_url)) = update::check_for_updates().await {
-                        println!("[INFO] New version available: v{}. Downloading...", tag);
-                        let _ = update::download_and_update(&download_url).await;
+                        update::show_info_box("Isaac Tracker", &format!("New version v{} available! Downloading update...", tag));
+                        if let Err(e) = update::download_and_update(&download_url).await {
+                            update::show_info_box("Isaac Tracker Error", &format!("Update failed: {}", e));
+                        }
                     } else {
-                        println!("[INFO] You are running the latest version!");
+                        update::show_info_box("Isaac Tracker", &format!("You are running the latest version (v{})!", update::CURRENT_VERSION));
                     }
                 });
             }).ok();

@@ -1,8 +1,17 @@
 use reqwest::Client;
 
-const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const REPO_OWNER: &str = "guitobi";
 const REPO_NAME: &str = "isaac-tracker";
+
+pub fn show_info_box(title: &str, message: &str) {
+    let _ = std::process::Command::new("powershell")
+        .args([
+            "-Command",
+            &format!("Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('{}', '{}')", message, title)
+        ])
+        .spawn();
+}
 
 pub async fn check_for_updates() -> Option<(String, String)> {
     let client = Client::new();
@@ -27,12 +36,17 @@ pub async fn check_for_updates() -> Option<(String, String)> {
 
     let tag_name = json["tag_name"].as_str()?.trim_start_matches('v').to_string();
     
-    // Simple version comparison
+    // Compare tag_name with CURRENT_VERSION
     if tag_name != CURRENT_VERSION {
-        let download_url = json["assets"]
-            .as_array()?
+        let assets = json["assets"].as_array()?;
+        
+        // EXPLICITLY look for isaac-tracker.exe (NOT IsaacTrackerSetup.exe)
+        let download_url = assets
             .iter()
-            .find(|asset| asset["name"].as_str().map_or(false, |name| name.ends_with(".exe")))
+            .find(|asset| asset["name"].as_str().map_or(false, |name| name == "isaac-tracker.exe"))
+            .or_else(|| {
+                assets.iter().find(|asset| asset["name"].as_str().map_or(false, |name| name.ends_with(".exe") && !name.contains("Setup")))
+            })
             .and_then(|asset| asset["browser_download_url"].as_str())?
             .to_string();
 
