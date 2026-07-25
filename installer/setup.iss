@@ -18,7 +18,6 @@ DefaultDirName={localappdata}\Programs\IsaacTracker
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputBaseFilename=IsaacTrackerSetup
-SetupIconFile=..\client\icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
