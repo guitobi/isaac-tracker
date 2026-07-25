@@ -6,4 +6,6 @@ export class CreateRunDto {
   finalBoss?: string;
   deathStage?: string;
   causeOfDeath?: string;
+  challengeId?: number;
+  challengeName?: string;
 }

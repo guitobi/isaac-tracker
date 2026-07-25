@@ -1,6 +1,10 @@
 import bossesData from '../../public/data/bosses.json';
 
-const bossNameToIdMap: Record<string, string> = {};
+const bossNameToIdMap: Record<string, string> = {
+  "the gate": "53",
+  "gate": "53",
+  "mega satan": "55",
+};
 const allBossNames: { id: string; norm: string; cleanNorm: string }[] = [];
 
 for (const [id, name] of Object.entries(bossesData)) {
@@ -9,6 +13,14 @@ for (const [id, name] of Object.entries(bossesData)) {
   bossNameToIdMap[norm] = id;
   bossNameToIdMap[cleanNorm] = id;
   allBossNames.push({ id, norm, cleanNorm });
+}
+
+export function formatBossName(raw: string): string {
+  if (!raw) return "";
+  let name = raw.trim();
+  name = name.replace(/\s*\([^)]*\)?/gi, '');
+  name = name.replace(/\s+copy.*$/gi, '');
+  return name.trim();
 }
 
 function cleanBossName(raw: string): string {
@@ -35,8 +47,8 @@ function cleanBossName(raw: string): string {
   return name;
 }
 
-export function getBossImageUrl(bossName: string): string | null {
-  if (!bossName) return null;
+export function getBossImageUrl(bossName: string): string {
+  if (!bossName) return "/bosses/1.png";
 
   const cleaned = cleanBossName(bossName);
   
@@ -59,5 +71,6 @@ export function getBossImageUrl(bossName: string): string | null {
     }
   }
 
-  return null;
+  // Guaranteed fallback so an image is ALWAYS present
+  return "/bosses/1.png";
 }

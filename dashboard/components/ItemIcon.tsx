@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Image from "next/image";
 import { ItemInfo } from "../types";
 import {
@@ -16,6 +17,7 @@ export function ItemIcon({ item }: ItemIconProps) {
   const description = getItemDescription(item.id, item.description);
   const quality = getItemQuality(item.id, item.quality);
   const isQ4 = isQuality4Item(item.id, item.quality);
+  const [imgSrc, setImgSrc] = useState(item.image || `/items/${item.id}.png`);
 
   return (
     <div className="relative group/item z-0 hover:z-50">
@@ -26,13 +28,13 @@ export function ItemIcon({ item }: ItemIconProps) {
             : ""
         }`}
       >
-        <Image
-          src={item.image}
+        <img
+          src={imgSrc}
           alt={name}
           width={32}
           height={32}
           className="w-8 h-8 object-contain"
-          unoptimized={true}
+          onError={() => setImgSrc(`/items/1.png`)}
         />
       </div>
 

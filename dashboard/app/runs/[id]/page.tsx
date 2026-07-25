@@ -3,8 +3,8 @@
 import { useParams, useRouter } from "next/navigation";
 import { ItemIcon } from "../../../components/ItemIcon";
 import { useRun } from "../../../hooks/useRuns";
-import { getBossImageUrl } from "../../lib/bosses";
-import { formatItemName } from "../../lib/items";
+import { getBossImageUrl, formatBossName } from "../../lib/bosses";
+import { formatItemName, getBuildRank, getItemQuality, isQuality4Item } from "../../lib/items";
 
 export default function RunDetailsPage() {
   const params = useParams();
@@ -47,8 +47,28 @@ export default function RunDetailsPage() {
 
   const uniqueBosses = run?.bosses ? Array.from(new Set(run.bosses)) : [];
 
+  // Group items by Quality (0..4) using official dictionary lookup helper
+  const q4Items = uniqueItemObjects.filter(i => getItemQuality(i.id, i.quality) === 4);
+  const q3Items = uniqueItemObjects.filter(i => getItemQuality(i.id, i.quality) === 3);
+  const q12Items = uniqueItemObjects.filter(i => {
+    const q = getItemQuality(i.id, i.quality);
+    return q === 1 || q === 2;
+  });
+  const q0Items = uniqueItemObjects.filter(i => getItemQuality(i.id, i.quality) === 0);
+
+  // Compute Build Power Score & Rank using getBuildRank
+  const buildRankInfo = getBuildRank(
+    uniqueItemObjects,
+    run?.isVictory,
+    run?.finalBoss,
+    run?.duration,
+  );
+  const totalBuildScore = buildRankInfo.score;
+  const buildRank = buildRankInfo.rank;
+  const buildRankStyle = buildRankInfo.style;
+
   return (
-    <div className="min-h-screen p-8 max-w-4xl mx-auto flex flex-col gap-8">
+    <div className="min-h-screen p-8 max-w-7xl mx-auto flex flex-col gap-6">
       <button
         onClick={() => router.push("/")}
         className="self-start px-4 py-2 bg-black hover:bg-isaac-dark text-white border-4 border-white font-pixel text-xl shadow-[4px_4px_0_rgba(0,0,0,1)] transition-colors"
@@ -56,172 +76,271 @@ export default function RunDetailsPage() {
         {"< BACK TO BASEMENT"}
       </button>
 
-      <header className="isaac-card p-8">
-        <div className="flex justify-between items-start mb-6 border-b-4 border-black pb-4">
-          <div>
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="font-hand text-5xl font-extrabold">
-                {run.character?.name || `Character #${run.characterId}`}
-              </h1>
-              {run.character?.isTainted && (
-                <span className="px-2 py-1 text-sm font-pixel font-bold bg-purple-900 text-purple-200 border-2 border-black">
-                  TAINTED
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ЛІВА КОЛОНКА (4/12) — Загальна інформація та Боси */}
+        <div className="lg:col-span-4 flex flex-col gap-6">
+          {/* Картка забігу */}
+          <header className="isaac-card p-6 flex flex-col gap-4">
+            <div className="flex justify-between items-start border-b-4 border-black pb-3">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="font-hand text-4xl font-extrabold text-black">
+                    {run.character?.name || `Character #${run.characterId}`}
+                  </h1>
+                  {run.character?.isTainted && (
+                    <span className="px-1.5 py-0.5 text-xs font-pixel font-bold bg-purple-900 text-purple-200 border border-black">
+                      TAINTED
+                    </span>
+                  )}
+                </div>
+                {run.user?.username && (
+                  <p className="font-pixel text-sm text-gray-700 mt-1">
+                    Player: {run.user.username}
+                  </p>
+                )}
+              </div>
+              <span
+                className={`px-3 py-1 text-xl font-bold border-4 border-black shadow-[2px_2px_0_rgba(0,0,0,0.5)] shrink-0 ${run.isVictory ? "bg-[#c39832] text-black" : "bg-[#8b0000] text-white"}`}
+              >
+                {run.isVictory ? "VICTORY" : "DEATH"}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-3 font-pixel text-base">
+              <div className="flex justify-between border-b border-black/10 pb-1.5">
+                <span className="text-gray-700">SEED:</span>
+                <span className="font-bold text-black">{run.seed}</span>
+              </div>
+              <div className="flex justify-between border-b border-black/10 pb-1.5">
+                <span className="text-gray-700">TIME:</span>
+                <span className="font-bold text-black">{Math.floor(run.duration / 60)}m {run.duration % 60}s</span>
+              </div>
+              <div className="flex justify-between border-b border-black/10 pb-1.5">
+                <span className="text-gray-700">BUILD SCORE:</span>
+                <span className="font-bold text-[#c39832] text-lg">{totalBuildScore} pts</span>
+              </div>
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-gray-700">RANK:</span>
+                <span className={`px-2.5 py-1 text-sm font-pixel font-bold border-2 rounded ${buildRankStyle}`}>
+                  {buildRank}
                 </span>
+              </div>
+            </div>
+
+            {/* Бейдж перемоги або смерті */}
+            {run.isVictory && (
+              <div className="mt-2 flex items-center gap-2 p-3 bg-[#c39832]/20 border-2 border-[#c39832] rounded text-sm font-pixel font-bold text-[#4a3800]">
+                <span>🏆</span>
+                <span>DEFEATED: {run.finalBoss || "Completed"}</span>
+              </div>
+            )}
+            {!run.isVictory && (run.deathStage || run.causeOfDeath) && (
+              <div className="mt-2 flex items-center gap-2 p-3 bg-[#8b0000]/20 border-2 border-[#8b0000] rounded text-sm font-pixel font-bold text-[#8b0000]">
+                <span>☠️</span>
+                <span>
+                  {run.causeOfDeath
+                    ? `KILLED BY ${run.causeOfDeath.toUpperCase()} ON ${run.deathStage?.toUpperCase() || "UNKNOWN"}`
+                    : `DIED ON: ${run.deathStage?.toUpperCase()}`}
+                </span>
+              </div>
+            )}
+          </header>
+
+          {/* Horizontal Stage Roadmap Boss Progression */}
+          <section className="isaac-card p-6 col-span-full">
+            <h2 className="font-hand text-4xl font-bold mb-4 border-b-4 border-black pb-2 flex justify-between items-center">
+              <span>Bosses</span>
+              <span className="font-pixel text-base text-gray-700">Defeated: {uniqueBosses.length}</span>
+            </h2>
+
+            <div className="flex gap-6 overflow-x-auto pb-4 pt-2 items-center snap-x">
+              {uniqueBosses.length > 0 ? (
+                uniqueBosses.map((boss, index) => {
+                  const imageUrl = getBossImageUrl(boss);
+                  const isFinal = run.finalBoss === boss;
+                  return (
+                    <div key={`roadmap-boss-${index}`} className="flex items-center gap-4 shrink-0 snap-start">
+                      <div
+                        className={`flex flex-col items-center border-4 p-4 rounded-xl shadow-lg transition-all w-56 ${
+                          isFinal
+                            ? "border-[#c39832] bg-[#c39832]/20 shadow-[0_0_20px_rgba(195,152,50,0.6)] scale-105"
+                            : "border-black/30 bg-black/5"
+                        }`}
+                      >
+                        <span className="font-pixel text-xs text-gray-700 font-bold mb-2">
+                          STAGE #{index + 1}
+                        </span>
+
+                        <div className="w-36 h-36 flex items-center justify-center bg-black/10 border-2 border-black/20 rounded-lg p-2 shadow-inner mb-3">
+                          {imageUrl ? (
+                            <img
+                              src={imageUrl}
+                              alt={boss}
+                              className="w-full h-full object-contain drop-shadow-xl"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <div className="font-pixel text-6xl">👹</div>
+                          )}
+                        </div>
+
+                        <span className="font-pixel text-base font-extrabold text-black text-center truncate w-full leading-tight">
+                          {formatBossName(boss)}
+                        </span>
+
+                        {isFinal && (
+                          <span className="mt-2 px-2.5 py-1 text-xs font-pixel font-bold bg-[#c39832] text-black border-2 border-black rounded shadow-[2px_2px_0_rgba(0,0,0,1)]">
+                            🏆 FINAL BOSS
+                          </span>
+                        )}
+                      </div>
+
+                      {index < uniqueBosses.length - 1 && (
+                        <div className="text-3xl font-bold text-black/40 px-1 select-none">
+                          ➔
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="w-full text-center py-6 font-hand text-2xl text-gray-700">
+                  No bosses defeated.
+                </div>
               )}
             </div>
-            {run.user?.username && (
-              <p className="font-pixel text-xl text-gray-700 mt-1">
-                Player: {run.user.username}
-              </p>
-            )}
-            <p className="font-pixel text-2xl mt-2">SEED: {run.seed}</p>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <span
-              className={`px-4 py-2 text-2xl font-bold border-4 border-black shadow-[4px_4px_0_rgba(0,0,0,0.5)] ${run.isVictory ? "bg-[#c39832] text-black" : "bg-[#8b0000] text-white"}`}
-            >
-              {run.isVictory ? "VICTORY" : "DEATH"}
-            </span>
-            <p className="text-gray-800 text-xl font-pixel mt-2">
-              ID: #{run.id}
-            </p>
-          </div>
+          </section>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
-          <div className="border-4 border-black p-4 bg-[rgba(0,0,0,0.05)]">
-            <p className="font-hand text-2xl font-bold">Time</p>
-            <p className="text-3xl font-pixel mt-1">
-              {Math.floor(run.duration / 60)}m {run.duration % 60}s
-            </p>
-          </div>
-          <div className="border-4 border-black p-4 bg-[rgba(0,0,0,0.05)]">
-            <p className="font-hand text-2xl font-bold">Character</p>
-            <p className="text-3xl font-pixel mt-1">
-              {run.character?.name || `#${run.characterId}`}
-            </p>
-          </div>
-          <div className="border-4 border-black p-4 bg-[rgba(0,0,0,0.05)]">
-            <p className="font-hand text-2xl font-bold">Items</p>
-            <p className="text-3xl font-pixel mt-1">
-              {uniqueItemObjects.length}
-            </p>
-          </div>
-          <div className="border-4 border-black p-4 bg-[rgba(0,0,0,0.05)]">
-            <p className="font-hand text-2xl font-bold">
-              {run.isVictory ? "Final Boss" : "Death Stage"}
-            </p>
-            <p className="text-2xl font-pixel mt-1 text-[#8b0000] truncate">
-              {run.isVictory
-                ? run.finalBoss || "Completed"
-                : run.deathStage || "Unknown"}
-            </p>
-          </div>
-        </div>
-      </header>
+        {/* ПРАВА КОЛОНКА (8/12) — Інвентар та Тіри Предметів */}
+        <div className="lg:col-span-8 flex flex-col gap-6">
+          {/* Зібрані предмети по Категоріях Quality */}
+          <section className="isaac-card p-6 flex flex-col gap-6">
+            <h2 className="font-hand text-4xl font-bold border-b-4 border-black pb-2 flex justify-between items-center">
+              <span>Items Collected</span>
+              <span className="font-pixel text-xl text-gray-700">Total: {uniqueItemObjects.length}</span>
+            </h2>
 
-      {/* Зібрані предмети */}
-      <section className="isaac-card p-8">
-        <h2 className="font-hand text-4xl font-bold mb-6 border-b-4 border-black pb-2">
-          Items Collected
-        </h2>
-
-        <div className="flex gap-4 flex-wrap">
-          {uniqueItemObjects.length > 0 ? (
-            uniqueItemObjects.map((item, index) => {
-              const formattedName = formatItemName(item.id, item.name);
-              return (
-                <div
-                  key={`item-${item.id}-${index}`}
-                  className="flex flex-col items-center border-2 border-black/20 p-2 bg-[rgba(0,0,0,0.02)] rounded w-24"
-                >
-                  <ItemIcon item={item} />
-                  <span className="font-pixel text-xs mt-2 text-center leading-tight line-clamp-2 w-full break-words">
-                    {formattedName}
-                  </span>
-                </div>
-              );
-            })
-          ) : (
-            <div className="w-full text-center py-8 font-hand text-3xl text-gray-700">
-              Nothing found...
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Зібрані брелоки */}
-      <section className="isaac-card p-8">
-        <h2 className="font-hand text-4xl font-bold mb-6 border-b-4 border-black pb-2">
-          Trinkets
-        </h2>
-
-        <div className="flex gap-4 flex-wrap">
-          {uniqueTrinketObjects.length > 0 ? (
-            uniqueTrinketObjects.map((trinket, index) => {
-              const formattedName = formatItemName(trinket.id, trinket.name);
-              return (
-                <div
-                  key={`trinket-${trinket.id}-${index}`}
-                  className="flex flex-col items-center border-2 border-black/20 p-2 bg-[rgba(0,0,0,0.02)] rounded w-24"
-                >
-                  <ItemIcon item={trinket} />
-                  <span className="font-pixel text-xs mt-2 text-center leading-tight line-clamp-2 w-full break-words">
-                    {formattedName}
-                  </span>
-                </div>
-              );
-            })
-          ) : (
-            <div className="w-full text-center py-8 font-hand text-3xl text-gray-700">
-              No trinkets.
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Переможені боси */}
-      <section className="isaac-card p-8">
-        <h2 className="font-hand text-4xl font-bold mb-6 border-b-4 border-black pb-2">
-          Bosses Defeated
-        </h2>
-
-        <div className="flex gap-4 flex-wrap">
-          {uniqueBosses.length > 0 ? (
-            uniqueBosses.map((boss, index) => {
-              const imageUrl = getBossImageUrl(boss);
-              return (
-                <div
-                  key={`boss-${index}`}
-                  className="flex flex-col items-center border-2 border-black p-2 bg-[rgba(0,0,0,0.03)] min-w-[80px]"
-                >
-                  {imageUrl ? (
-                    <img
-                      src={imageUrl}
-                      alt={boss}
-                      className="w-16 h-16 object-contain drop-shadow-md"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <div className="w-16 h-16 flex items-center justify-center font-pixel text-2xl">
-                      👹
+            {/* Quality 4 Section */}
+            {q4Items.length > 0 && (
+              <div className="border-2 border-[#c39832] bg-[#c39832]/10 p-4 rounded-lg shadow-[0_0_12px_rgba(195,152,50,0.3)]">
+                <h3 className="font-pixel text-sm font-bold text-[#4a3800] mb-3 flex items-center gap-2">
+                  <span>⭐</span>
+                  <span>QUALITY 4 — LEGENDARY ITEMS ({q4Items.length})</span>
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full">
+                  {q4Items.map((item, index) => (
+                    <div key={`q4-${item.id}-${index}`} className="flex flex-col items-center border-2 border-[#c39832] p-2.5 bg-[#c39832]/10 rounded-lg w-full relative hover:z-40 shadow-md">
+                      <ItemIcon item={item} />
+                      <span className="font-pixel text-[11px] mt-1.5 text-center font-bold text-[#4a3800] leading-tight w-full break-words line-clamp-2">
+                        {formatItemName(item.id, item.name)}
+                      </span>
                     </div>
-                  )}
-                  <span className="font-pixel text-sm mt-2 text-center max-w-[100px] leading-tight">
-                    {boss}
-                  </span>
+                  ))}
                 </div>
-              );
-            })
-          ) : (
-            <div className="w-full text-center py-4 font-hand text-2xl text-gray-700">
-              No bosses defeated.
+              </div>
+            )}
+
+            {/* Quality 3 Section */}
+            {q3Items.length > 0 && (
+              <div className="border-2 border-purple-800/40 bg-purple-900/10 p-4 rounded-lg">
+                <h3 className="font-pixel text-sm font-bold text-purple-950 mb-3 flex items-center gap-2">
+                  <span>✨</span>
+                  <span>QUALITY 3 — HIGH TIER ({q3Items.length})</span>
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full">
+                  {q3Items.map((item, index) => (
+                    <div key={`q3-${item.id}-${index}`} className="flex flex-col items-center border-2 border-purple-900/30 p-2.5 bg-black/5 rounded-lg w-full relative hover:z-40">
+                      <ItemIcon item={item} />
+                      <span className="font-pixel text-[11px] mt-1.5 text-center leading-tight text-black w-full break-words line-clamp-2">
+                        {formatItemName(item.id, item.name)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quality 1 & 2 Section */}
+            {q12Items.length > 0 && (
+              <div className="border-2 border-black/20 bg-black/5 p-4 rounded-lg">
+                <h3 className="font-pixel text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <span>🔹</span>
+                  <span>STANDARD ITEMS ({q12Items.length})</span>
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full">
+                  {q12Items.map((item, index) => (
+                    <div key={`q12-${item.id}-${index}`} className="flex flex-col items-center border-2 border-black/20 p-2.5 bg-black/5 rounded-lg w-full relative hover:z-40">
+                      <ItemIcon item={item} />
+                      <span className="font-pixel text-[11px] mt-1.5 text-center leading-tight text-black w-full break-words line-clamp-2">
+                        {formatItemName(item.id, item.name)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Quality 0 Section */}
+            {q0Items.length > 0 && (
+              <div className="border-2 border-gray-400 bg-gray-200/50 p-4 rounded-lg">
+                <h3 className="font-pixel text-sm font-bold text-gray-600 mb-3 flex items-center gap-2">
+                  <span>💀</span>
+                  <span>QUALITY 0 — LOW TIER ({q0Items.length})</span>
+                </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full">
+                  {q0Items.map((item, index) => (
+                    <div key={`q0-${item.id}-${index}`} className="flex flex-col items-center border-2 border-gray-400 p-2.5 bg-black/5 rounded-lg w-full relative hover:z-40">
+                      <ItemIcon item={item} />
+                      <span className="font-pixel text-[11px] mt-1.5 text-center leading-tight text-gray-600 w-full break-words line-clamp-2">
+                        {formatItemName(item.id, item.name)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {uniqueItemObjects.length === 0 && (
+              <div className="w-full text-center py-8 font-hand text-3xl text-gray-700">
+                No items collected in this run...
+              </div>
+            )}
+          </section>
+
+          {/* Collected Trinkets */}
+          <section className="isaac-card p-6">
+            <h2 className="font-hand text-3xl font-bold mb-4 border-b-4 border-black pb-2">
+              Trinkets ({uniqueTrinketObjects.length})
+            </h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 w-full">
+              {uniqueTrinketObjects.length > 0 ? (
+                uniqueTrinketObjects.map((trinket, index) => {
+                  const formattedName = formatItemName(trinket.id, trinket.name);
+                  return (
+                    <div
+                      key={`trinket-${trinket.id}-${index}`}
+                      className="flex flex-col items-center border-2 border-black/20 p-2.5 bg-black/5 rounded-lg w-full relative hover:z-40"
+                    >
+                      <ItemIcon item={trinket} />
+                      <span className="font-pixel text-[11px] mt-1.5 text-center leading-tight text-black w-full break-words line-clamp-2">
+                        {formattedName}
+                      </span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="col-span-full text-center py-4 font-hand text-xl text-gray-700">
+                  No trinkets collected.
+                </div>
+              )}
             </div>
-          )}
+          </section>
         </div>
-      </section>
+      </div>
     </div>
   );
 }

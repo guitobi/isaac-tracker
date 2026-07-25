@@ -10,6 +10,25 @@ use keyring::Entry;
 
 use crate::auth::start_login_server;
 
+   fn get_challenge_name(id: i32) -> String {                                                                                                                      
+        match id {                                                                                                                                                  
+            1 => "Pitch Black",                                                                                                                                     
+            2 => "High Brow",                                                                                                                                       
+            3 => "Head Trauma",                                                                                                                                     
+            4 => "Darkness Falls",                                                                                                                                  
+            5 => "The Tank",                                                                                                                                        
+            6 => "Solar System",                                                                                                                                    
+            7 => "Suicide King",                                                                                                                                    
+            8 => "Cat Got Your Tongue",                                                                                                                             
+            9 => "Demo Man",                                                                                                                                        
+            10 => "Cursed!",                                                                                                                                        
+            22 => "SPEED!",                                                                                                                                         
+            34 => "Ultra Hard",                                                                                                                                     
+            45 => "DELETE ITEM",                                                                                                                                    
+            _ => "Custom Challenge",                                                                                                                                
+        }.to_string()                                                                                                                                               
+    } 
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
@@ -28,7 +47,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let regex_boss_room = Regex::new(r"Room 5\.\d+\((.+?)\)").unwrap();
     let boss_death_regex = Regex::new(r"deathspawn_boss").unwrap();
     let victory_regex = Regex::new(r"(?i)cutscene|show ending|ending\s+\d+|beast|mega satan|delirium|mother|ultra greed").unwrap();
-    let stage_regex = Regex::new(r"load stage \d+:\s*(.*?)\s*\(mode \d+\)").unwrap();                                                                               
+    let stage_regex = Regex::new(r"load stage \d+:\s*(.*?)\s*\(mode \d+\)").unwrap();    
+    let challenge_regex = Regex::new(r"(?i)Challenge\s+(\d+)").unwrap();                                                                                                                                                                       
 
     lines.add_file(path).await?;
 
@@ -45,6 +65,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut current_final_boss: Option<String> = None;
     let mut current_death_stage: Option<String> = None;
     let mut current_cause_of_death: Option<String> = None;
+    let mut current_challenge_id: Option<i32> = None;
+    let mut current_challenge_name: Option<String> = None;
 
     let mut api_client = api::ApiClient::new();
 
@@ -119,7 +141,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(ref s) = current_seed {
             println!("[INFO] Detected active run seed from log: {}", s);
             let pid = initial_player_id.unwrap_or(0);
-            match api_client.create_run(s, pid).await {
+            match api_client.create_run(s, pid, current_challenge_id, current_challenge_name.clone()).await {
                 Ok(new_id) => {
                     println!("[SUCCESS] Connected to active run with ID: {}", new_id);
                     current_run_id = Some(new_id);
@@ -132,6 +154,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     while let Ok(Some(line)) = lines.next_line().await {
         println!("{}", line.line());
+
+        if let Some(captures) = challenge_regex.captures(line.line()) {
+            if let Ok(cid) = captures[1].parse::<i32>() {
+                let cname  = get_challenge_name(cid);
+                println!("[INFO] Challenge detected: {} (ID: {})", cname, cid);
+                current_challenge_id = Some(cid);
+                current_challenge_name = Some(cname);
+            }
+        }
 
         if let Some(captures) = stage_regex.captures(line.line()) {
             let stage = captures[1].trim().to_string();
@@ -263,6 +294,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             current_cause_of_death = None;
             current_final_boss = None;
             current_death_stage = None;
+            current_challenge_id = None;
+            current_challenge_name = None
         }
 
         if let Some(captures) = regex_player.captures(line.line()) {
@@ -273,7 +306,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let seed_val = current_seed.clone().unwrap_or_else(|| "UNKNOWN".to_string());
                 println!("[INFO] Player found: {} (Seed: {})", player_id, seed_val);
 
-                match api_client.create_run(&seed_val, player_id).await {
+                match api_client.create_run(&seed_val, player_id, current_challenge_id, current_challenge_name.clone()).await {
                     Ok(new_id) => {
                         println!("[SUCCESS] Created run with ID: {}", new_id);
                         current_run_id = Some(new_id);
@@ -290,7 +323,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 None => {
                     let seed_val = current_seed.clone().unwrap_or_else(|| "UNKNOWN".to_string());
                     println!("[WARN] Game Over detected without active run ID. Fallback creating run for seed: {}...", seed_val);
-                    match api_client.create_run(&seed_val, 0).await {
+                    match api_client.create_run(&seed_val, 0, current_challenge_id, current_challenge_name.clone()).await {
                         Ok(new_id) => {
                             println!("[SUCCESS] Fallback created run ID: {}", new_id);
                             Some(new_id)

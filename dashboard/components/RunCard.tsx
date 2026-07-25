@@ -1,7 +1,6 @@
 import { Run } from "../types";
 import Link from "next/link";
-import { isQuality4Item } from "../app/lib/items";
-
+import { getBuildRank, isQuality4Item } from "../app/lib/items";
 
 interface RunCardProps {
   run: Run;
@@ -21,6 +20,12 @@ export function RunCard({ run }: RunCardProps) {
 
   const charName = run.character?.name || `Character #${run.characterId}`;
   const isTainted = run.character?.isTainted;
+  const buildRankInfo = getBuildRank(
+    run.itemObjects,
+    run.isVictory,
+    run.finalBoss,
+    run.duration,
+  );
 
   return (
     <Link href={`/runs/${run.id}`} className="block h-full">
@@ -37,6 +42,9 @@ export function RunCard({ run }: RunCardProps) {
                     TAINTED
                   </span>
                 )}
+                <span className={`px-2 py-0.5 text-xs font-pixel font-bold border-2 rounded ${buildRankInfo.style}`}>
+                  {buildRankInfo.rank}
+                </span>
               </div>
               {run.user?.username && (
                 <p className="font-pixel text-xs font-bold text-black/80 mt-1">

@@ -19,12 +19,14 @@ impl ApiClient {
         self.token = token;
     }
 
-    pub async fn create_run(&self, seed: &str, character_id: i32) -> Result<i32, Box<dyn std::error::Error>> {
+    pub async fn create_run(&self, seed: &str, character_id: i32, challenge_id: Option<i32>, challenge_name: Option<String>) -> Result<i32, Box<dyn std::error::Error>> {
           let payload = serde_json::json!({
                 "seed": seed, 
                 "characterId": character_id, 
                 "isVictory": false,
-                "duration": 0
+                "duration": 0,
+                "challengeId": challenge_id,
+                "challengeName": challenge_name
             });
 
         let res = self.client.post(&self.base_url)

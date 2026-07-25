@@ -41,6 +41,8 @@ model Run {
   user        User      @relation(fields: [userId], references: [id])
   characterId Int
   character   Character @relation(fields: [characterId], references: [id])
+  challengeId Int?
+  challengeName String?
 }
 
 model Item {
