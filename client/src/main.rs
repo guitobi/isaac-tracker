@@ -84,7 +84,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Run TrayItem and Win32 message pump on a dedicated OS thread
     let tray_username = current_username.clone();
     std::thread::spawn(move || {
-        if let Ok(mut tray_item) = TrayItem::new("Isaac Tracker", IconSource::Resource("1")) {
+        if let Ok(mut tray_item) = TrayItem::new("Isaac Tracker", IconSource::Resource("my-icon")) {
             let label = format!("Isaac Tracker ({})", tray_username);
             let _ = tray_item.add_label(&label);
 
