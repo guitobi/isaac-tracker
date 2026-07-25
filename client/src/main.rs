@@ -1,7 +1,9 @@
-// #![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 
 mod api;
 mod auth;
+mod autostart;
+mod update;
 
 use linemux::MuxedLines;
 use regex::Regex;
@@ -9,6 +11,7 @@ use tray_item::{IconSource, TrayItem};
 use keyring::Entry;
 
 use crate::auth::start_login_server;
+use crate::autostart::{is_autostart_enabled, set_autostart};
 
    fn get_challenge_name(id: i32) -> String {                                                                                                                      
         match id {                                                                                                                                                  
@@ -29,13 +32,47 @@ use crate::auth::start_login_server;
         }.to_string()                                                                                                                                               
     } 
 
+fn get_isaac_log_path() -> std::path::PathBuf {
+    if let Ok(env_path) = std::env::var("ISAAC_LOG_PATH") {
+        let p = std::path::PathBuf::from(env_path);
+        if p.exists() {
+            return p;
+        }
+    }
+
+    let user_profile = std::env::var("USERPROFILE")
+        .or_else(|_| std::env::var("HOME"))
+        .unwrap_or_else(|_| "C:/Users/Default".to_string());
+
+    let candidates = vec![
+        format!("{}/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile),
+        format!("{}/OneDrive/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile),
+        format!("{}/Documents/My Games/Binding of Isaac Repentance/log.txt", user_profile),
+        format!("{}/OneDrive/Documents/My Games/Binding of Isaac Repentance/log.txt", user_profile),
+        format!("{}/Documents/My Games/Binding of Isaac Afterbirth+/log.txt", user_profile),
+        format!("{}/OneDrive/Documents/My Games/Binding of Isaac Afterbirth+/log.txt", user_profile),
+    ];
+
+    for candidate in &candidates {
+        let p = std::path::PathBuf::from(candidate);
+        if p.exists() {
+            println!("[INFO] Found Isaac log at: {}", p.display());
+            return p;
+        }
+    }
+
+    let fallback = std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile));
+    println!("[WARN] Could not find existing log.txt, falling back to: {}", fallback.display());
+    fallback
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
 
+    let path = get_isaac_log_path();
 
     let mut lines = MuxedLines::new()?;
-    let path = "C:/Users/Administrator/Documents/My Games/Binding of Isaac Repentance+/log.txt";
 
     const FINAL_BOSSES: &[&str] = &["The Beast", "Mother", "Delirium", "Mega Satan", "Ultra Greed", "Ultra Greedier", "Isaac", "Satan", "The Lamb", "It Lives"];    
 
@@ -50,7 +87,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let stage_regex = Regex::new(r"load stage \d+:\s*(.*?)\s*\(mode \d+\)").unwrap();    
     let challenge_regex = Regex::new(r"(?i)Challenge\s+(\d+)").unwrap();                                                                                                                                                                       
 
-    lines.add_file(path).await?;
+    lines.add_file(&path).await?;
 
     println!("Tracker is running! Waiting for new lines...");
 
@@ -101,7 +138,37 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Safely attempt tray initialization without panicking
     let _tray = match TrayItem::new("Isaac Tracker", IconSource::Resource("my-icon")) {
         Ok(mut tray_item) => {
-            tray_item.add_label("Tracker is running!").ok();
+            let user_label = format!("Isaac Tracker (User: {})", username);
+            tray_item.add_label(&user_label).ok();
+
+            tray_item.add_menu_item("Open Dashboard", || {
+                let _ = std::process::Command::new("cmd")
+                    .args(["/C", "start", "https://isaa-tracker.vercel.app/"])
+                    .spawn();
+            }).ok();
+
+            let autostart_label = if is_autostart_enabled() {
+                "Autostart: Enabled (Click to Disable)"
+            } else {
+                "Autostart: Disabled (Click to Enable)"
+            };
+
+            tray_item.add_menu_item(autostart_label, || {
+                let currently_enabled = is_autostart_enabled();
+                let _ = set_autostart(!currently_enabled);
+            }).ok();
+
+            tray_item.add_menu_item("Check for Updates", || {
+                tokio::spawn(async {
+                    if let Some((tag, download_url)) = update::check_for_updates().await {
+                        println!("[INFO] New version available: v{}. Downloading...", tag);
+                        let _ = update::download_and_update(&download_url).await;
+                    } else {
+                        println!("[INFO] You are running the latest version!");
+                    }
+                });
+            }).ok();
+
             let logout_label = format!("Logout ({})", username);
             tray_item.add_menu_item(&logout_label, || {
                 let entry = Entry::new("isaac-tracker", "default").unwrap();
@@ -109,13 +176,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 println!("[INFO] Logged out! Please restart tracker to log in again.");
                 std::process::exit(0);
             }).ok();
+
             tray_item.add_menu_item("Quit", || {
                 std::process::exit(0);
             }).ok();
+
             Some(tray_item)
         },
         Err(e) => {
-            println!("[WARN] System tray unavailable: {}. Continuing in console mode.", e);
+            println!("[WARN] System tray unavailable: {}. Continuing in background mode.", e);
             None
         }
     };
