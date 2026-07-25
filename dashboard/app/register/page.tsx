@@ -16,7 +16,7 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: Record<string, string>) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://isaac-tracker-server.fly.dev";
       const res = await fetch(`${apiUrl}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -70,6 +70,51 @@ fn get_isaac_log_path() -> std::path::PathBuf {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
 
+    // Safely attempt tray initialization immediately on app launch
+    let _tray = match TrayItem::new("Isaac Tracker", IconSource::Resource("my-icon")) {
+        Ok(mut tray_item) => {
+            tray_item.add_label("Isaac Tracker (Starting...)").ok();
+
+            tray_item.add_menu_item("Open Dashboard", || {
+                let _ = std::process::Command::new("cmd")
+                    .args(["/C", "start", "https://isaa-tracker.vercel.app/"])
+                    .spawn();
+            }).ok();
+
+            let autostart_label = if is_autostart_enabled() {
+                "Autostart: Enabled (Click to Disable)"
+            } else {
+                "Autostart: Disabled (Click to Enable)"
+            };
+
+            tray_item.add_menu_item(autostart_label, || {
+                let currently_enabled = is_autostart_enabled();
+                let _ = set_autostart(!currently_enabled);
+            }).ok();
+
+            tray_item.add_menu_item("Check for Updates", || {
+                tokio::spawn(async {
+                    if let Some((tag, download_url)) = update::check_for_updates().await {
+                        println!("[INFO] New version available: v{}. Downloading...", tag);
+                        let _ = update::download_and_update(&download_url).await;
+                    } else {
+                        println!("[INFO] You are running the latest version!");
+                    }
+                });
+            }).ok();
+
+            tray_item.add_menu_item("Quit", || {
+                std::process::exit(0);
+            }).ok();
+
+            Some(tray_item)
+        },
+        Err(e) => {
+            println!("[WARN] System tray unavailable: {}. Continuing in background mode.", e);
+            None
+        }
+    };
+
     let path = get_isaac_log_path();
 
     let mut lines = MuxedLines::new()?;
@@ -134,60 +179,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     api_client.set_token(token);
     println!("[INFO] Welcome back, {}!", username);
-
-    // Safely attempt tray initialization without panicking
-    let _tray = match TrayItem::new("Isaac Tracker", IconSource::Resource("my-icon")) {
-        Ok(mut tray_item) => {
-            let user_label = format!("Isaac Tracker (User: {})", username);
-            tray_item.add_label(&user_label).ok();
-
-            tray_item.add_menu_item("Open Dashboard", || {
-                let _ = std::process::Command::new("cmd")
-                    .args(["/C", "start", "https://isaa-tracker.vercel.app/"])
-                    .spawn();
-            }).ok();
-
-            let autostart_label = if is_autostart_enabled() {
-                "Autostart: Enabled (Click to Disable)"
-            } else {
-                "Autostart: Disabled (Click to Enable)"
-            };
-
-            tray_item.add_menu_item(autostart_label, || {
-                let currently_enabled = is_autostart_enabled();
-                let _ = set_autostart(!currently_enabled);
-            }).ok();
-
-            tray_item.add_menu_item("Check for Updates", || {
-                tokio::spawn(async {
-                    if let Some((tag, download_url)) = update::check_for_updates().await {
-                        println!("[INFO] New version available: v{}. Downloading...", tag);
-                        let _ = update::download_and_update(&download_url).await;
-                    } else {
-                        println!("[INFO] You are running the latest version!");
-                    }
-                });
-            }).ok();
-
-            let logout_label = format!("Logout ({})", username);
-            tray_item.add_menu_item(&logout_label, || {
-                let entry = Entry::new("isaac-tracker", "default").unwrap();
-                let _ = entry.delete_credential();
-                println!("[INFO] Logged out! Please restart tracker to log in again.");
-                std::process::exit(0);
-            }).ok();
-
-            tray_item.add_menu_item("Quit", || {
-                std::process::exit(0);
-            }).ok();
-
-            Some(tray_item)
-        },
-        Err(e) => {
-            println!("[WARN] System tray unavailable: {}. Continuing in background mode.", e);
-            None
-        }
-    };
 
     // Pre-scan recent log file lines to catch active seed/player if tracker started mid-game
     let mut initial_player_id: Option<i32> = None;

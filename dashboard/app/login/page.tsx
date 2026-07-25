@@ -20,7 +20,7 @@ function LoginForm() {
 
   const onSubmit = async (data: Record<string, string>) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://isaac-tracker-server.fly.dev";
       const res = await fetch(`${apiUrl}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
