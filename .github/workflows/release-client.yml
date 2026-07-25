@@ -21,10 +21,11 @@ jobs:
           cd client
           cargo build --release
 
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
       - name: Build Inno Setup Installer
-        uses: sbmpost/InnoSetupAction@v1
-        with:
-          filepath: installer/setup.iss
+        run: iscc installer/setup.iss
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
