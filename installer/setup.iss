@@ -1,7 +1,7 @@
 ; Inno Setup Script for Isaac Tracker Desktop Client
 
 #define MyAppName "Isaac Tracker"
-#define MyAppVersion "0.1.1"
+#define MyAppVersion "0.1.2"
 #define MyAppPublisher "Isaac Tracker Team"
 #define MyAppURL "https://isaa-tracker.vercel.app/"
 #define MyAppExeName "isaac-tracker.exe"
@@ -18,6 +18,7 @@ DefaultDirName={localappdata}\Programs\IsaacTracker
 DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputBaseFilename=IsaacTrackerSetup
+SetupIconFile=..\client\icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
