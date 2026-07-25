@@ -1,4 +1,4 @@
-app = 'isaac-tracker-server'
+app = 'isaac-tracker'
 primary_region = 'fra'
 
 [build]
