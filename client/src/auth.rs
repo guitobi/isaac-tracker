@@ -12,7 +12,7 @@ pub fn start_login_server() -> String {
       }
     };
 
-    let url = std::env::var("DASHBOARD_LOGIN_URL").unwrap_or("http://localhost:3000/login?desktop=true".to_string());
+    let url = std::env::var("DASHBOARD_LOGIN_URL").unwrap_or("https://isaa-tracker.vercel.app/login?desktop=true".to_string());
     if let Err(e) = std::process::Command::new("cmd")
         .args(["/C", "start", &url])
         .spawn() {

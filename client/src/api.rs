@@ -10,7 +10,7 @@ impl ApiClient {
     pub fn new() -> Self {
         Self {
             client: Client::new(),
-            base_url: std::env::var("RUNS_URL").unwrap_or("http://localhost:3000/runs".to_string()),
+            base_url: std::env::var("RUNS_URL").unwrap_or("https://isaac-tracker-server.fly.dev/runs".to_string()),
             token: String::new(),
         }
     }
