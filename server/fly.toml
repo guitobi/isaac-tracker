@@ -15,7 +15,7 @@ primary_region = 'fra'
 [[services]]
   protocol = 'tcp'
   internal_port = 3000
-  auto_stop_machines = 'stop'
+  auto_stop_machines = 'off'
   auto_start_machines = true
   min_machines_running = 1
 
@@ -29,7 +29,7 @@ primary_region = 'fra'
     handlers = ['tls', 'http']
 
 [[vm]]
-  memory = '256mb'
+  memory = '512mb'
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 256
+  memory_mb = 512
