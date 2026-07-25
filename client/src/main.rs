@@ -70,10 +70,21 @@ fn get_isaac_log_path() -> std::path::PathBuf {
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
 
+    let entry_check = Entry::new("isaac-tracker", "default").ok();
+    let current_username = entry_check.as_ref()
+        .and_then(|e| e.get_password().ok())
+        .and_then(|json_str| {
+            serde_json::from_str::<serde_json::Value>(&json_str).ok()
+                .and_then(|j| j["username"].as_str().map(|s| s.to_string()))
+        })
+        .unwrap_or_else(|| "User".to_string());
+
     // Run TrayItem and Win32 message pump on a dedicated OS thread
-    std::thread::spawn(|| {
+    let tray_username = current_username.clone();
+    std::thread::spawn(move || {
         if let Ok(mut tray_item) = TrayItem::new("Isaac Tracker", IconSource::Resource("my-icon")) {
-            let _ = tray_item.add_label("Isaac Tracker");
+            let label = format!("Isaac Tracker ({})", tray_username);
+            let _ = tray_item.add_label(&label);
 
             let _ = tray_item.add_menu_item("Open Dashboard", || {
                 let _ = std::process::Command::new("cmd")
