@@ -1,9 +1,10 @@
-name: Release Client Executable
+name: Release Client Executable & Installer
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build-release:
@@ -20,9 +21,16 @@ jobs:
           cd client
           cargo build --release
 
+      - name: Build Inno Setup Installer
+        uses: sbmpost/InnoSetupAction@v1
+        with:
+          filepath: installer/setup.iss
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: client/target/release/isaac-tracker.exe
+          files: |
+            client/target/release/isaac-tracker.exe
+            installer/Output/IsaacTrackerSetup.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
