@@ -352,6 +352,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if victory_regex.is_match(line.line()) {
             println!("[INFO] Victory condition detected in log!");
             current_is_victory = true;
+            
+            if let Some(run_id) = current_run_id {
+                let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
+                let res = api_client.update_run(
+                    run_id,
+                    current_is_victory,
+                    current_items.clone(),
+                    current_trinkets.clone(),
+                    current_bosses.clone(),
+                    duration,
+                    current_final_boss.clone(),
+                    current_death_stage.clone(),
+                    current_cause_of_death.clone()
+                ).await;
+                
+                match res {
+                    Ok(_) => println!("[SUCCESS] Victory Run #{} updated on server!", run_id),
+                    Err(e) => {
+                        if e.to_string() == "UNAUTHORIZED" {
+                            if perform_reauth(&mut api_client, &entry).await {
+                                let _ = api_client.update_run(run_id, current_is_victory, current_items.clone(), current_trinkets.clone(), current_bosses.clone(), duration, current_final_boss.clone(), current_death_stage.clone(), current_cause_of_death.clone()).await;
+                            }
+                        } else {
+                            println!("[ERROR] Failed to update victory run #{}: {}", run_id, e);
+                        }
+                    }
+                }
+            }
         }
 
         if let Some(captures) = regex_seed.captures(line.line()) {
