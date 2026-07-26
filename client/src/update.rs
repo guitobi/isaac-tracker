@@ -1,14 +1,18 @@
 use reqwest::Client;
+use semver::Version;
 
 pub const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const REPO_OWNER: &str = "guitobi";
 const REPO_NAME: &str = "isaac-tracker";
 
 pub fn show_info_box(title: &str, message: &str) {
+    let safe_message = message.replace("'", "''");
+    let safe_title = title.replace("'", "''");
     let _ = std::process::Command::new("powershell")
         .args([
+            "-WindowStyle", "Hidden",
             "-Command",
-            &format!("Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('{}', '{}')", message, title)
+            &format!("Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.MessageBox]::Show('{}', '{}')", safe_message, safe_title)
         ])
         .spawn();
 }
@@ -36,8 +40,10 @@ pub async fn check_for_updates() -> Option<(String, String)> {
 
     let tag_name = json["tag_name"].as_str()?.trim_start_matches('v').to_string();
     
-    // Compare tag_name with CURRENT_VERSION
-    if tag_name != CURRENT_VERSION {
+    let current_v = Version::parse(CURRENT_VERSION).ok()?;
+    let latest_v = Version::parse(&tag_name).ok()?;
+    
+    if latest_v > current_v {
         let assets = json["assets"].as_array()?;
         
         // EXPLICITLY look for isaac-tracker.exe (NOT IsaacTrackerSetup.exe)

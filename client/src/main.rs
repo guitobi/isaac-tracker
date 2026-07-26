@@ -40,29 +40,72 @@ fn get_isaac_log_path() -> std::path::PathBuf {
         }
     }
 
+    let mut candidates = Vec::new();
+
+    // 1. Check true Windows Documents folder (handles OneDrive and moved Documents)
+    if let Some(doc_dir) = dirs::document_dir() {
+        candidates.push(doc_dir.join("My Games/Binding of Isaac Repentance+/log.txt"));
+        candidates.push(doc_dir.join("My Games/Binding of Isaac Repentance/log.txt"));
+        candidates.push(doc_dir.join("My Games/Binding of Isaac Afterbirth+/log.txt"));
+    }
+
+    // 2. Fallbacks based on USERPROFILE
     let user_profile = std::env::var("USERPROFILE")
         .or_else(|_| std::env::var("HOME"))
         .unwrap_or_else(|_| "C:/Users/Default".to_string());
 
-    let candidates = vec![
-        format!("{}/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile),
-        format!("{}/OneDrive/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile),
-        format!("{}/Documents/My Games/Binding of Isaac Repentance/log.txt", user_profile),
-        format!("{}/OneDrive/Documents/My Games/Binding of Isaac Repentance/log.txt", user_profile),
-        format!("{}/Documents/My Games/Binding of Isaac Afterbirth+/log.txt", user_profile),
-        format!("{}/OneDrive/Documents/My Games/Binding of Isaac Afterbirth+/log.txt", user_profile),
-    ];
+    candidates.push(std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile)));
+    candidates.push(std::path::PathBuf::from(format!("{}/OneDrive/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile)));
+    candidates.push(std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Repentance/log.txt", user_profile)));
 
     for candidate in &candidates {
-        let p = std::path::PathBuf::from(candidate);
-        if p.exists() {
-            println!("[INFO] Found Isaac log at: {}", p.display());
-            return p;
+        if candidate.exists() {
+            println!("[INFO] Found Isaac log at standard location: {}", candidate.display());
+            return candidate.clone();
         }
     }
 
-    let fallback = std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile));
-    println!("[WARN] Could not find existing log.txt, falling back to: {}", fallback.display());
+    println!("[WARN] Could not find log.txt in standard locations. Searching ENTIRE SYSTEM... (This may take a few minutes)");
+    update::show_info_box("Isaac Tracker", "Searching your entire system for the game log file. This may take a minute...");
+
+    let drives = vec!["C:\\", "D:\\", "E:\\", "F:\\", "G:\\", "Z:\\"];
+    for drive in drives {
+        if std::path::Path::new(drive).exists() {
+            println!("[INFO] Scanning drive {}...", drive);
+            let walk = jwalk::WalkDir::new(drive)
+                .skip_hidden(true)
+                .process_read_dir(|_, _, _, dir_entry_results| {
+                    dir_entry_results.retain(|dir_entry_result| {
+                        dir_entry_result.as_ref().map(|dir_entry| {
+                            let name = dir_entry.file_name().to_string_lossy();
+                            // Skip massive system directories to speed up search
+                            !name.eq_ignore_ascii_case("Windows") && 
+                            !name.eq_ignore_ascii_case("node_modules") &&
+                            !name.eq_ignore_ascii_case("$Recycle.Bin")
+                        }).unwrap_or(false)
+                    })
+                });
+
+            for entry in walk.into_iter().filter_map(|e| e.ok()) {
+                let path = entry.path();
+                if path.is_dir() {
+                    if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+                        if name.starts_with("Binding of Isaac") {
+                            let log_file = path.join("log.txt");
+                            if log_file.exists() {
+                                println!("[SUCCESS] Found Isaac log system-wide at: {}", log_file.display());
+                                update::show_info_box("Isaac Tracker", &format!("Found log file at: {}", log_file.display()));
+                                return log_file;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let fallback = candidates[0].clone();
+    println!("[WARN] Could not find existing log.txt even after full system search. Falling back to: {}", fallback.display());
     fallback
 }
 
@@ -150,9 +193,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let trinket_regex = Regex::new(r"Adding trinket (\d+)").unwrap();
     let regex_boss_room = Regex::new(r"Room 5\.\d+\((.+?)\)").unwrap();
     let boss_death_regex = Regex::new(r"deathspawn_boss").unwrap();
-    let victory_regex = Regex::new(r"(?i)cutscene|show ending|ending\s+\d+|beast|mega satan|delirium|mother|ultra greed").unwrap();
+    let victory_regex = Regex::new(r"(?i)cutscene|show ending|ending\s+\d+").unwrap();
     let stage_regex = Regex::new(r"load stage \d+:\s*(.*?)\s*\(mode \d+\)").unwrap();    
     let challenge_regex = Regex::new(r"(?i)Challenge\s+(\d+)").unwrap();                                                                                                                                                                       
+
+    if !path.exists() {
+        println!("[INFO] log.txt not found yet. Waiting for game to start...");
+        while !path.exists() {
+            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+        }
+    }
 
     lines.add_file(&path).await?;
 
@@ -174,14 +224,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut api_client = api::ApiClient::new();
 
-    let entry = Entry::new("isaac-tracker", "default").unwrap();
+    let entry = Entry::new("isaac-tracker", "default");
 
-    let saved_json = match entry.get_password() {
-        Ok(json_str) => json_str,
+    let saved_json = match &entry {
+        Ok(e) => match e.get_password() {
+            Ok(json_str) => json_str,
+            Err(_) => {
+                let res = start_login_server().unwrap_or_else(|_| String::new());
+                if !res.is_empty() {
+                    let _ = e.set_password(&res);
+                }
+                res
+            }
+        },
         Err(_) => {
-            let res = start_login_server();
-            let _ = entry.set_password(&res);
-            res
+            println!("[WARN] Failed to access keyring. Prompting login...");
+            start_login_server().unwrap_or_else(|_| String::new())
         }
     };
 
@@ -190,12 +248,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             (json["token"].as_str().unwrap().to_string(), json["username"].as_str().unwrap_or("Unknown").to_string())
         },
         _ => {
-            // Encountered old token format (not JSON) - prompting login again
             println!("[INFO] Old token format detected. Prompting login...");
-            let res = start_login_server();
-            let _ = entry.set_password(&res);
-            let json: serde_json::Value = serde_json::from_str(&res).unwrap();
-            (json["token"].as_str().unwrap().to_string(), json["username"].as_str().unwrap_or("Unknown").to_string())
+            let res = start_login_server().unwrap_or_else(|_| String::new());
+            if let Ok(e) = &entry {
+                if !res.is_empty() {
+                    let _ = e.set_password(&res);
+                }
+            }
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&res) {
+                if json["token"].is_string() {
+                    (json["token"].as_str().unwrap().to_string(), json["username"].as_str().unwrap_or("Unknown").to_string())
+                } else {
+                    (String::new(), "User".to_string())
+                }
+            } else {
+                (String::new(), "User".to_string())
+            }
         }
     };
 
@@ -204,20 +272,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Pre-scan recent log file lines to catch active seed/player if tracker started mid-game
     let mut initial_player_id: Option<i32> = None;
-    if let Ok(content) = std::fs::read_to_string(path) {
-        for l in content.lines().rev().take(300).collect::<Vec<_>>().into_iter().rev() {
-            if let Some(captures) = regex_seed.captures(l) {
-                current_seed = Some(captures[1].trim().to_string());
-                initial_player_id = None;
-            }
-            if let Some(captures) = regex_player.captures(l) {
-                if let Ok(pid) = captures[1].parse::<i32>() {
-                    initial_player_id = Some(pid);
+    if let Ok(mut file) = std::fs::File::open(&path) {
+        use std::io::{Seek, SeekFrom, Read};
+        let mut content = String::new();
+        let file_len = file.metadata().map(|m| m.len()).unwrap_or(0);
+        let seek_pos = if file_len > 32768 { file_len - 32768 } else { 0 };
+        if let Ok(_) = file.seek(SeekFrom::Start(seek_pos)) {
+            let _ = file.read_to_string(&mut content);
+            for l in content.lines().rev().take(300).collect::<Vec<_>>().into_iter().rev() {
+                if let Some(captures) = regex_seed.captures(l) {
+                    current_seed = Some(captures[1].trim().to_string());
+                    initial_player_id = None;
                 }
-            }
-            if regex_death.is_match(l) {
-                current_seed = None;
-                initial_player_id = None;
+                if let Some(captures) = regex_player.captures(l) {
+                    if let Ok(pid) = captures[1].parse::<i32>() {
+                        initial_player_id = Some(pid);
+                    }
+                }
+                if regex_death.is_match(l) {
+                    current_seed = None;
+                    initial_player_id = None;
+                }
             }
         }
         if let Some(ref s) = current_seed {
@@ -261,17 +336,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // Real-time sync item to active run on server
                 if let Some(run_id) = current_run_id {
                     let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
-                    let _ = api_client.update_run(
-                        run_id,
-                        false,
-                        current_items.clone(),
-                        current_trinkets.clone(),
-                        current_bosses.clone(),
-                        duration,
-                        None,
-                        None,
-                        None
-                    ).await;
+                    let api_clone = api_client.clone();
+                    let items = current_items.clone();
+                    let trinkets = current_trinkets.clone();
+                    let bosses = current_bosses.clone();
+                    tokio::spawn(async move {
+                        let _ = api_clone.update_run(
+                            run_id,
+                            false,
+                            items,
+                            trinkets,
+                            bosses,
+                            duration,
+                            None,
+                            None,
+                            None
+                        ).await;
+                    });
                 }
             }
         }
@@ -285,17 +366,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 // Real-time sync trinket to active run on server
                 if let Some(run_id) = current_run_id {
                     let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
-                    let _ = api_client.update_run(
-                        run_id,
-                        false,
-                        current_items.clone(),
-                        current_trinkets.clone(),
-                        current_bosses.clone(),
-                        duration,
-                        None,
-                        None,
-                        None
-                    ).await;
+                    let api_clone = api_client.clone();
+                    let items = current_items.clone();
+                    let trinkets = current_trinkets.clone();
+                    let bosses = current_bosses.clone();
+                    tokio::spawn(async move {
+                        let _ = api_clone.update_run(
+                            run_id,
+                            false,
+                            items,
+                            trinkets,
+                            bosses,
+                            duration,
+                            None,
+                            None,
+                            None
+                        ).await;
+                    });
                 }
             }
         }
@@ -316,6 +403,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 if FINAL_BOSSES.contains(&&boss_name.as_str()) {
                     current_final_boss = Some(boss_name.clone());
+                    current_is_victory = true;
                 }                 
 
                 if !current_bosses.contains(&boss_name) {
@@ -323,17 +411,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                     if let Some(run_id) = current_run_id {
                         let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
-                        let _ = api_client.update_run(
-                            run_id,
-                            false,
-                            current_items.clone(),
-                            current_trinkets.clone(),
-                            current_bosses.clone(),
-                            duration,
-                            current_final_boss.clone(),
-                            current_death_stage.clone(),
-                            current_cause_of_death.clone()
-                        ).await;
+                        let api_clone = api_client.clone();
+                        let items = current_items.clone();
+                        let trinkets = current_trinkets.clone();
+                        let bosses = current_bosses.clone();
+                        let final_boss = current_final_boss.clone();
+                        let death_stage = current_death_stage.clone();
+                        let cause_of_death = current_cause_of_death.clone();
+                        let is_victory = current_is_victory;
+                        tokio::spawn(async move {
+                            let _ = api_clone.update_run(
+                                run_id,
+                                is_victory,
+                                items,
+                                trinkets,
+                                bosses,
+                                duration,
+                                final_boss,
+                                death_stage,
+                                cause_of_death
+                            ).await;
+                        });
                     }
                 }
             }
@@ -352,19 +450,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some(old_run_id) = current_run_id.take() {
                 let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
                 println!("[INFO] Quick restart detected! Closing previous run #{}...", old_run_id);
-                if let Err(e) = api_client.update_run(
-                    old_run_id,
-                    current_is_victory,
-                    current_items.clone(),
-                    current_trinkets.clone(),
-                    current_bosses.clone(),
-                    duration,
-                    None,
-                    None,
-                    None
-                ).await {
-                    println!("[ERROR] Failed to close restarted run #{}: {}", old_run_id, e);
-                }
+                let api_clone = api_client.clone();
+                let is_victory = current_is_victory;
+                let items = current_items.clone();
+                let trinkets = current_trinkets.clone();
+                let bosses = current_bosses.clone();
+                tokio::spawn(async move {
+                    if let Err(e) = api_clone.update_run(
+                        old_run_id,
+                        is_victory,
+                        items,
+                        trinkets,
+                        bosses,
+                        duration,
+                        None,
+                        None,
+                        None
+                    ).await {
+                        println!("[ERROR] Failed to close restarted run #{}: {}", old_run_id, e);
+                    }
+                });
             }
 
             // Clear buffers for new run
@@ -377,7 +482,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             current_final_boss = None;
             current_death_stage = None;
             current_challenge_id = None;
-            current_challenge_name = None
+            current_challenge_name = None;
+            current_run_start_time = Some(std::time::Instant::now());
         }
 
         if let Some(captures) = regex_player.captures(line.line()) {
@@ -420,17 +526,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             if let Some(run_id) = target_run_id {
                 let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(30);
-                match api_client.update_run(run_id, current_is_victory, current_items.clone(), current_trinkets.clone(), current_bosses.clone(), duration, current_final_boss.clone(), current_death_stage.clone(), current_cause_of_death.clone()).await {
-                    Ok(_) => {
-                        println!("[SUCCESS] Run #{} updated on server (Victory: {})!", run_id, current_is_victory);
-                        current_run_id = None;
-                        current_items.clear();
-                        current_trinkets.clear();
-                        current_bosses.clear();
-                        current_is_victory = false;
-                    },
-                    Err(e) => println!("[ERROR] Failed to update run #{}: {}", run_id, e),
-                }
+                let api_clone = api_client.clone();
+                let is_victory = current_is_victory;
+                let items = current_items.clone();
+                let trinkets = current_trinkets.clone();
+                let bosses = current_bosses.clone();
+                let final_boss = current_final_boss.clone();
+                let death_stage = current_death_stage.clone();
+                let cause_of_death = current_cause_of_death.clone();
+                tokio::spawn(async move {
+                    match api_clone.update_run(run_id, is_victory, items, trinkets, bosses, duration, final_boss, death_stage, cause_of_death).await {
+                        Ok(_) => {
+                            println!("[SUCCESS] Run #{} updated on server (Victory: {})!", run_id, is_victory);
+                        },
+                        Err(e) => println!("[ERROR] Failed to update run #{}: {}", run_id, e),
+                    }
+                });
+                current_run_id = None;
+                current_items.clear();
+                current_trinkets.clear();
+                current_bosses.clear();
+                current_is_victory = false;
             }
             println!("[INFO] Game Over!");
         }        

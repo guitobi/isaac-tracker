@@ -8,10 +8,16 @@ pub fn is_autostart_enabled() -> bool {
     let hkcu = RegKey::predef(HKEY_CURRENT_USER);
     if let Ok(key) = hkcu.open_subkey_with_flags(REG_KEY_PATH, KEY_READ) {
         let val: Result<String, _> = key.get_value(APP_NAME);
-        val.is_ok()
-    } else {
-        false
+        if let Ok(path) = val {
+            if let Ok(current_exe) = std::env::current_exe() {
+                if let Some(exe_str) = current_exe.to_str() {
+                    let formatted = format!("\"{}\"", exe_str);
+                    return path == formatted;
+                }
+            }
+        }
     }
+    false
 }
 
 pub fn set_autostart(enable: bool) -> Result<(), Box<dyn std::error::Error>> {

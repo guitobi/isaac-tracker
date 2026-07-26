@@ -3,14 +3,8 @@ use std::io::Read;
 use std::io::Write;
 use regex::Regex;
 
-pub fn start_login_server() -> String {
-    let listener = match TcpListener::bind("127.0.0.1:12345") {
-      Ok(server) => server,
-      Err(error) => {
-        println!("[ERROR] Something went wrong when starting a server: {}", error);
-        return String::new(); // Return empty string instead of killing the program
-      }
-    };
+pub fn start_login_server() -> Result<String, Box<dyn std::error::Error>> {
+    let listener = TcpListener::bind("127.0.0.1:12345")?;
 
     let url = std::env::var("DASHBOARD_LOGIN_URL").unwrap_or("https://isaa-tracker.vercel.app/login?desktop=true".to_string());
     if let Err(e) = std::process::Command::new("cmd")
@@ -21,7 +15,7 @@ pub fn start_login_server() -> String {
 
     for l in listener.incoming() {
       if let Ok(mut stream) = l {
-          let mut buffer = [0u8; 1024];
+          let mut buffer = [0u8; 4096];
           if stream.read(&mut buffer).is_err() {
               continue;
           }
@@ -30,11 +24,15 @@ pub fn start_login_server() -> String {
           let user_regex = Regex::new(r"username=([^ &\n\r]+)").unwrap();
           
           if let Some(t_caps) = token_regex.captures(&request) {
-            let token = t_caps[1].to_string();
-            let username = match user_regex.captures(&request) {
+            let raw_token = t_caps[1].to_string();
+            let token = urlencoding::decode(&raw_token).unwrap_or(std::borrow::Cow::Borrowed(&raw_token)).to_string();
+            
+            let raw_username = match user_regex.captures(&request) {
                 Some(u_caps) => u_caps[1].to_string(),
-                None => "Isaac".to_string(), // Fallback if frontend is cached
+                None => "Isaac".to_string(),
             };
+            let username = urlencoding::decode(&raw_username).unwrap_or(std::borrow::Cow::Borrowed(&raw_username)).to_string();
+            
             println!("[INFO] Login Successful! User: {}", username);
             let response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n\
             <html>\
@@ -52,13 +50,11 @@ pub fn start_login_server() -> String {
                 "token": token,
                 "username": username
             });
-            return json.to_string();
+            return Ok(json.to_string());
           }
-
-          println!("{}", request);
           continue;
       }
     }
 
-    String::new()
-} 
+    Err("Listener closed unexpectedly".into())
+}

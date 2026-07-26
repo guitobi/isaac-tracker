@@ -1,5 +1,6 @@
 use reqwest::Client;
 
+#[derive(Clone)]
 pub struct ApiClient {
     client: Client,
     base_url: String,
@@ -37,8 +38,8 @@ impl ApiClient {
 
         let data: serde_json::Value = res.json().await?;
 
-        if data["id"].is_null() {
-            return Err(format!("Server return an error: {}", data).into());
+        if !data["id"].is_i64() {
+            return Err(format!("Server returned an error or missing id: {}", data).into());
         }
 
         let new_id = data["id"].as_i64().unwrap() as i32;
