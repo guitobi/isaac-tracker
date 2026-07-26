@@ -1,6 +1,7 @@
 import { Run } from "../types";
 import Link from "next/link";
 import { getBuildRank, isQuality4Item } from "../app/lib/items";
+import { getChallengeName } from "../app/lib/challenges";
 
 interface RunCardProps {
   run: Run;
@@ -20,6 +21,7 @@ export function RunCard({ run }: RunCardProps) {
 
   const charName = run.character?.name || `Character #${run.characterId}`;
   const isTainted = run.character?.isTainted;
+  const challengeName = getChallengeName(run.challengeId);
   const buildRankInfo = getBuildRank(
     run.itemObjects,
     run.isVictory,
@@ -34,9 +36,20 @@ export function RunCard({ run }: RunCardProps) {
           <div className="flex justify-between items-start mb-3 border-b-4 border-black pb-2">
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="font-hand font-bold text-3xl text-black">
-                  {charName}
-                </h3>
+                {challengeName ? (
+                  <h3 className="font-hand font-bold text-3xl text-black">
+                    Challenge #{run.challengeId}
+                  </h3>
+                ) : (
+                  <h3 className="font-hand font-bold text-3xl text-black">
+                    {charName}
+                  </h3>
+                )}
+                {challengeName && (
+                  <span className="px-1.5 py-0.5 text-xs font-pixel font-bold bg-[#8b0000] text-white border-2 border-black">
+                    🎯 {challengeName.toUpperCase()}
+                  </span>
+                )}
                 {isTainted && (
                   <span className="px-1.5 py-0.5 text-xs font-pixel font-bold bg-purple-900 text-white border-2 border-black">
                     TAINTED
@@ -46,6 +59,11 @@ export function RunCard({ run }: RunCardProps) {
                   {buildRankInfo.rank}
                 </span>
               </div>
+              {challengeName && (
+                <p className="font-pixel text-xs font-bold text-black/80 mt-1">
+                  Character: {charName}
+                </p>
+              )}
               {run.user?.username && (
                 <p className="font-pixel text-xs font-bold text-black/80 mt-1">
                   Player: {run.user.username}

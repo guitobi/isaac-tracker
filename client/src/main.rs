@@ -10,27 +10,9 @@ use regex::Regex;
 use tray_item::{IconSource, TrayItem};
 use keyring::Entry;
 
-use crate::auth::start_login_server;
 use crate::autostart::{is_autostart_enabled, set_autostart};
 
-   fn get_challenge_name(id: i32) -> String {                                                                                                                      
-        match id {                                                                                                                                                  
-            1 => "Pitch Black",                                                                                                                                     
-            2 => "High Brow",                                                                                                                                       
-            3 => "Head Trauma",                                                                                                                                     
-            4 => "Darkness Falls",                                                                                                                                  
-            5 => "The Tank",                                                                                                                                        
-            6 => "Solar System",                                                                                                                                    
-            7 => "Suicide King",                                                                                                                                    
-            8 => "Cat Got Your Tongue",                                                                                                                             
-            9 => "Demo Man",                                                                                                                                        
-            10 => "Cursed!",                                                                                                                                        
-            22 => "SPEED!",                                                                                                                                         
-            34 => "Ultra Hard",                                                                                                                                     
-            45 => "DELETE ITEM",                                                                                                                                    
-            _ => "Custom Challenge",                                                                                                                                
-        }.to_string()                                                                                                                                               
-    } 
+
 
 fn get_isaac_log_path() -> std::path::PathBuf {
     if let Ok(env_path) = std::env::var("ISAAC_LOG_PATH") {
@@ -47,9 +29,10 @@ fn get_isaac_log_path() -> std::path::PathBuf {
         candidates.push(doc_dir.join("My Games/Binding of Isaac Repentance+/log.txt"));
         candidates.push(doc_dir.join("My Games/Binding of Isaac Repentance/log.txt"));
         candidates.push(doc_dir.join("My Games/Binding of Isaac Afterbirth+/log.txt"));
+        candidates.push(doc_dir.join("My Games/Binding of Isaac Rebirth/log.txt"));
     }
 
-    // 2. Fallbacks based on USERPROFILE
+    // 2. Fallbacks based on USERPROFILE / HOME
     let user_profile = std::env::var("USERPROFILE")
         .or_else(|_| std::env::var("HOME"))
         .unwrap_or_else(|_| "C:/Users/Default".to_string());
@@ -57,6 +40,8 @@ fn get_isaac_log_path() -> std::path::PathBuf {
     candidates.push(std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile)));
     candidates.push(std::path::PathBuf::from(format!("{}/OneDrive/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile)));
     candidates.push(std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Repentance/log.txt", user_profile)));
+    candidates.push(std::path::PathBuf::from(format!("{}/OneDrive/Documents/My Games/Binding of Isaac Repentance/log.txt", user_profile)));
+    candidates.push(std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Afterbirth+/log.txt", user_profile)));
 
     for candidate in &candidates {
         if candidate.exists() {
@@ -65,48 +50,31 @@ fn get_isaac_log_path() -> std::path::PathBuf {
         }
     }
 
-    println!("[WARN] Could not find log.txt in standard locations. Searching ENTIRE SYSTEM... (This may take a few minutes)");
-    update::show_info_box("Isaac Tracker", "Searching your entire system for the game log file. This may take a minute...");
+    let fallback = candidates.first().cloned().unwrap_or_else(|| {
+        std::path::PathBuf::from("C:/Users/Default/Documents/My Games/Binding of Isaac Repentance+/log.txt")
+    });
+    println!("[WARN] Could not find existing log.txt in standard locations. Defaulting to target path: {}", fallback.display());
+    fallback
+}
 
-    let drives = vec!["C:\\", "D:\\", "E:\\", "F:\\", "G:\\", "Z:\\"];
-    for drive in drives {
-        if std::path::Path::new(drive).exists() {
-            println!("[INFO] Scanning drive {}...", drive);
-            let walk = jwalk::WalkDir::new(drive)
-                .skip_hidden(true)
-                .process_read_dir(|_, _, _, dir_entry_results| {
-                    dir_entry_results.retain(|dir_entry_result| {
-                        dir_entry_result.as_ref().map(|dir_entry| {
-                            let name = dir_entry.file_name().to_string_lossy();
-                            // Skip massive system directories to speed up search
-                            !name.eq_ignore_ascii_case("Windows") && 
-                            !name.eq_ignore_ascii_case("node_modules") &&
-                            !name.eq_ignore_ascii_case("$Recycle.Bin")
-                        }).unwrap_or(false)
-                    })
-                });
-
-            for entry in walk.into_iter().filter_map(|e| e.ok()) {
-                let path = entry.path();
-                if path.is_dir() {
-                    if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-                        if name.starts_with("Binding of Isaac") {
-                            let log_file = path.join("log.txt");
-                            if log_file.exists() {
-                                println!("[SUCCESS] Found Isaac log system-wide at: {}", log_file.display());
-                                update::show_info_box("Isaac Tracker", &format!("Found log file at: {}", log_file.display()));
-                                return log_file;
-                            }
-                        }
+async fn perform_reauth(api_client: &mut api::ApiClient, entry: &Result<Entry, keyring::Error>) -> bool {
+    println!("[WARN] Token expired! Prompting login...");
+    match tokio::task::spawn_blocking(crate::auth::start_login_server).await {
+        Ok(Ok(json_str)) => {
+            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_str) {
+                if let Some(new_t) = json["token"].as_str() {
+                    api_client.set_token(new_t.to_string());
+                    if let Ok(e) = entry {
+                        let _ = e.set_password(&json_str);
                     }
+                    return true;
                 }
             }
         }
+        Ok(Err(e)) => println!("[ERROR] Login server error: {}", e),
+        Err(e) => println!("[ERROR] Task join error: {}", e),
     }
-
-    let fallback = candidates[0].clone();
-    println!("[WARN] Could not find existing log.txt even after full system search. Falling back to: {}", fallback.display());
-    fallback
+    false
 }
 
 #[tokio::main]
@@ -184,8 +152,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut lines = MuxedLines::new()?;
 
-    const FINAL_BOSSES: &[&str] = &["The Beast", "Mother", "Delirium", "Mega Satan", "Ultra Greed", "Ultra Greedier", "Isaac", "Satan", "The Lamb", "It Lives"];    
-
     let regex_seed = Regex::new(r"RNG Start Seed: ([a-zA-Z0-9 ]+)").unwrap();
     let regex_player = Regex::new(r"(?:Subtype\s+|Subtype\()\s*(\d+)").unwrap();
     let regex_death = Regex::new(r"Game Over").unwrap();
@@ -230,7 +196,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(e) => match e.get_password() {
             Ok(json_str) => json_str,
             Err(_) => {
-                let res = start_login_server().unwrap_or_else(|_| String::new());
+                let res = tokio::task::spawn_blocking(crate::auth::start_login_server)
+                    .await
+                    .ok()
+                    .and_then(|r| r.ok())
+                    .unwrap_or_default();
                 if !res.is_empty() {
                     let _ = e.set_password(&res);
                 }
@@ -239,7 +209,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         Err(_) => {
             println!("[WARN] Failed to access keyring. Prompting login...");
-            start_login_server().unwrap_or_else(|_| String::new())
+            tokio::task::spawn_blocking(crate::auth::start_login_server)
+                .await
+                .ok()
+                .and_then(|r| r.ok())
+                .unwrap_or_default()
         }
     };
 
@@ -249,7 +223,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         _ => {
             println!("[INFO] Old token format detected. Prompting login...");
-            let res = start_login_server().unwrap_or_else(|_| String::new());
+            let res = tokio::task::spawn_blocking(crate::auth::start_login_server)
+                .await
+                .ok()
+                .and_then(|r| r.ok())
+                .unwrap_or_default();
             if let Ok(e) = &entry {
                 if !res.is_empty() {
                     let _ = e.set_password(&res);
@@ -298,7 +276,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if let Some(ref s) = current_seed {
             println!("[INFO] Detected active run seed from log: {}", s);
             let pid = initial_player_id.unwrap_or(0);
-            match api_client.create_run(s, pid, current_challenge_id, current_challenge_name.clone()).await {
+            let mut res = api_client.create_run(s, pid, current_challenge_id, current_challenge_name.clone()).await;
+            if let Err(ref e) = res {
+                if e.to_string() == "UNAUTHORIZED" {
+                    if perform_reauth(&mut api_client, &entry).await {
+                        res = api_client.create_run(s, pid, current_challenge_id, current_challenge_name.clone()).await;
+                    }
+                }
+            }
+            match res {
                 Ok(new_id) => {
                     println!("[SUCCESS] Connected to active run with ID: {}", new_id);
                     current_run_id = Some(new_id);
@@ -314,10 +300,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(captures) = challenge_regex.captures(line.line()) {
             if let Ok(cid) = captures[1].parse::<i32>() {
-                let cname  = get_challenge_name(cid);
-                println!("[INFO] Challenge detected: {} (ID: {})", cname, cid);
+                println!("[INFO] Challenge detected: ID {}", cid);
                 current_challenge_id = Some(cid);
-                current_challenge_name = Some(cname);
+                current_challenge_name = None;
             }
         }
 
@@ -332,28 +317,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if !current_items.contains(&item_id) {
                 current_items.push(item_id);
                 println!("[INFO] Picked up item: {}", item_id);
-
-                // Real-time sync item to active run on server
-                if let Some(run_id) = current_run_id {
-                    let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
-                    let api_clone = api_client.clone();
-                    let items = current_items.clone();
-                    let trinkets = current_trinkets.clone();
-                    let bosses = current_bosses.clone();
-                    tokio::spawn(async move {
-                        let _ = api_clone.update_run(
-                            run_id,
-                            false,
-                            items,
-                            trinkets,
-                            bosses,
-                            duration,
-                            None,
-                            None,
-                            None
-                        ).await;
-                    });
-                }
             }
         }
 
@@ -362,28 +325,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if !current_trinkets.contains(&trinket_id) {
                 current_trinkets.push(trinket_id);
                 println!("[INFO] Picked up trinket: {}", trinket_id);
-
-                // Real-time sync trinket to active run on server
-                if let Some(run_id) = current_run_id {
-                    let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
-                    let api_clone = api_client.clone();
-                    let items = current_items.clone();
-                    let trinkets = current_trinkets.clone();
-                    let bosses = current_bosses.clone();
-                    tokio::spawn(async move {
-                        let _ = api_clone.update_run(
-                            run_id,
-                            false,
-                            items,
-                            trinkets,
-                            bosses,
-                            duration,
-                            None,
-                            None,
-                            None
-                        ).await;
-                    });
-                }
             }
         }
 
@@ -401,38 +342,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some(boss_name) = current_room_boss.take() {
                 println!("[INFO] Boss is dead: {}", boss_name);
 
-                if FINAL_BOSSES.contains(&&boss_name.as_str()) {
-                    current_final_boss = Some(boss_name.clone());
-                    current_is_victory = true;
-                }                 
-
                 if !current_bosses.contains(&boss_name) {
-                    current_bosses.push(boss_name);
-
-                    if let Some(run_id) = current_run_id {
-                        let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
-                        let api_clone = api_client.clone();
-                        let items = current_items.clone();
-                        let trinkets = current_trinkets.clone();
-                        let bosses = current_bosses.clone();
-                        let final_boss = current_final_boss.clone();
-                        let death_stage = current_death_stage.clone();
-                        let cause_of_death = current_cause_of_death.clone();
-                        let is_victory = current_is_victory;
-                        tokio::spawn(async move {
-                            let _ = api_clone.update_run(
-                                run_id,
-                                is_victory,
-                                items,
-                                trinkets,
-                                bosses,
-                                duration,
-                                final_boss,
-                                death_stage,
-                                cause_of_death
-                            ).await;
-                        });
-                    }
+                    current_bosses.push(boss_name.clone());
+                    current_final_boss = Some(boss_name); // Last boss killed becomes potential final boss
                 }
             }
         }
@@ -450,26 +362,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             if let Some(old_run_id) = current_run_id.take() {
                 let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(0);
                 println!("[INFO] Quick restart detected! Closing previous run #{}...", old_run_id);
-                let api_clone = api_client.clone();
-                let is_victory = current_is_victory;
-                let items = current_items.clone();
-                let trinkets = current_trinkets.clone();
-                let bosses = current_bosses.clone();
-                tokio::spawn(async move {
-                    if let Err(e) = api_clone.update_run(
-                        old_run_id,
-                        is_victory,
-                        items,
-                        trinkets,
-                        bosses,
-                        duration,
-                        None,
-                        None,
-                        None
-                    ).await {
+                
+                let res = api_client.update_run(
+                    old_run_id,
+                    current_is_victory,
+                    current_items.clone(),
+                    current_trinkets.clone(),
+                    current_bosses.clone(),
+                    duration,
+                    current_final_boss.clone(),
+                    current_death_stage.clone(),
+                    current_cause_of_death.clone()
+                ).await;
+                
+                if let Err(e) = res {
+                    if e.to_string() == "UNAUTHORIZED" {
+                        if perform_reauth(&mut api_client, &entry).await {
+                            let _ = api_client.update_run(old_run_id, current_is_victory, current_items.clone(), current_trinkets.clone(), current_bosses.clone(), duration, current_final_boss.clone(), current_death_stage.clone(), current_cause_of_death.clone()).await;
+                        }
+                    } else {
                         println!("[ERROR] Failed to close restarted run #{}: {}", old_run_id, e);
                     }
-                });
+                }
             }
 
             // Clear buffers for new run
@@ -494,7 +408,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let seed_val = current_seed.clone().unwrap_or_else(|| "UNKNOWN".to_string());
                 println!("[INFO] Player found: {} (Seed: {})", player_id, seed_val);
 
-                match api_client.create_run(&seed_val, player_id, current_challenge_id, current_challenge_name.clone()).await {
+                let mut res = api_client.create_run(&seed_val, player_id, current_challenge_id, current_challenge_name.clone()).await;
+                if let Err(ref e) = res {
+                    if e.to_string() == "UNAUTHORIZED" {
+                        if perform_reauth(&mut api_client, &entry).await {
+                            res = api_client.create_run(&seed_val, player_id, current_challenge_id, current_challenge_name.clone()).await;
+                        }
+                    }
+                }
+                match res {
                     Ok(new_id) => {
                         println!("[SUCCESS] Created run with ID: {}", new_id);
                         current_run_id = Some(new_id);
@@ -511,7 +433,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 None => {
                     let seed_val = current_seed.clone().unwrap_or_else(|| "UNKNOWN".to_string());
                     println!("[WARN] Game Over detected without active run ID. Fallback creating run for seed: {}...", seed_val);
-                    match api_client.create_run(&seed_val, 0, current_challenge_id, current_challenge_name.clone()).await {
+                    let mut res = api_client.create_run(&seed_val, 0, current_challenge_id, current_challenge_name.clone()).await;
+                    if let Err(ref e) = res {
+                        if e.to_string() == "UNAUTHORIZED" {
+                            if perform_reauth(&mut api_client, &entry).await {
+                                res = api_client.create_run(&seed_val, 0, current_challenge_id, current_challenge_name.clone()).await;
+                            }
+                        }
+                    }
+                    match res {
                         Ok(new_id) => {
                             println!("[SUCCESS] Fallback created run ID: {}", new_id);
                             Some(new_id)
@@ -526,22 +456,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             if let Some(run_id) = target_run_id {
                 let duration = current_run_start_time.map(|t| t.elapsed().as_secs()).unwrap_or(30);
-                let api_clone = api_client.clone();
-                let is_victory = current_is_victory;
-                let items = current_items.clone();
-                let trinkets = current_trinkets.clone();
-                let bosses = current_bosses.clone();
-                let final_boss = current_final_boss.clone();
-                let death_stage = current_death_stage.clone();
-                let cause_of_death = current_cause_of_death.clone();
-                tokio::spawn(async move {
-                    match api_clone.update_run(run_id, is_victory, items, trinkets, bosses, duration, final_boss, death_stage, cause_of_death).await {
-                        Ok(_) => {
-                            println!("[SUCCESS] Run #{} updated on server (Victory: {})!", run_id, is_victory);
-                        },
-                        Err(e) => println!("[ERROR] Failed to update run #{}: {}", run_id, e),
+                
+                let res = api_client.update_run(run_id, current_is_victory, current_items.clone(), current_trinkets.clone(), current_bosses.clone(), duration, current_final_boss.clone(), current_death_stage.clone(), current_cause_of_death.clone()).await;
+                
+                match res {
+                    Ok(_) => println!("[SUCCESS] Run #{} updated on server (Victory: {})!", run_id, current_is_victory),
+                    Err(e) => {
+                        if e.to_string() == "UNAUTHORIZED" {
+                            if perform_reauth(&mut api_client, &entry).await {
+                                let _ = api_client.update_run(run_id, current_is_victory, current_items.clone(), current_trinkets.clone(), current_bosses.clone(), duration, current_final_boss.clone(), current_death_stage.clone(), current_cause_of_death.clone()).await;
+                            }
+                        } else {
+                            println!("[ERROR] Failed to update run #{}: {}", run_id, e);
+                        }
                     }
-                });
+                }
+                
                 current_run_id = None;
                 current_items.clear();
                 current_trinkets.clear();

@@ -33,4 +33,5 @@ export interface Run {
   finalBoss?: string;
   deathStage?: string;
   causeOfDeath?: string;
+  challengeId?: number;
 }

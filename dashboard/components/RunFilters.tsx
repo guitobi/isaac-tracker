@@ -84,7 +84,7 @@ export function RunFilters({
 
         <input
           type="text"
-          placeholder="Search SEED..."
+          placeholder="Search SEED or Challenge..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="bg-black/10 text-black font-bold border-2 border-black px-3 py-1.5 font-pixel text-xs placeholder-black/60 outline-none w-full md:w-44"

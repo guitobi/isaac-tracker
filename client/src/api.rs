@@ -36,6 +36,10 @@ impl ApiClient {
             .send()
             .await?;
 
+        if res.status() == reqwest::StatusCode::UNAUTHORIZED {
+            return Err("UNAUTHORIZED".into());
+        }
+
         let data: serde_json::Value = res.json().await?;
 
         if !data["id"].is_i64() {
@@ -68,6 +72,10 @@ impl ApiClient {
             .json(&payload)
             .send()
             .await?;
+
+        if res.status() == reqwest::StatusCode::UNAUTHORIZED {
+            return Err("UNAUTHORIZED".into());
+        }
 
         let data: serde_json::Value = res.json().await?;
         println!("[INFO] Run updated on server: {}", data);

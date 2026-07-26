@@ -5,15 +5,17 @@ import { useRuns } from '../hooks/useRuns';
 import { Header } from '../components/Header';
 import { RunCard } from '../components/RunCard';
 import { StatsBanner } from '../components/StatsBanner';
-import { RunFilters, ResultFilterType } from '../components/RunFilters';
+import { RunFilters, ResultFilterType, ModeFilterType } from '../components/RunFilters';
 import { calculateDashboardStats, calculateCharacterStats } from './lib/stats';
 import { CharacterStats } from '../components/CharacterStats';
 import { CharacterInfo } from '../types';
+import { getChallengeName } from './lib/challenges';
 
 export default function Home() {
   const { data: runs = [], isLoading, error } = useRuns();
 
   const [resultFilter, setResultFilter] = useState<ResultFilterType>('ALL');
+  const [modeFilter, setModeFilter] = useState<ModeFilterType>('ALL');
   const [selectedCharacterId, setSelectedCharacterId] = useState<number | 'ALL'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -35,6 +37,12 @@ export default function Home() {
       if (resultFilter === 'VICTORY' && !run.isVictory) return false;
       if (resultFilter === 'DEATH' && run.isVictory) return false;
 
+      const challengeName = getChallengeName(run.challengeId);
+      const isChallengeRun = challengeName !== null;
+
+      if (modeFilter === 'NORMAL' && isChallengeRun) return false;
+      if (modeFilter === 'CHALLENGE' && !isChallengeRun) return false;
+
       if (selectedCharacterId !== 'ALL' && run.characterId !== selectedCharacterId) {
         return false;
       }
@@ -43,12 +51,20 @@ export default function Home() {
         const term = searchTerm.trim().toLowerCase();
         const seedMatch = run.seed?.toLowerCase().includes(term);
         const charMatch = run.character?.name?.toLowerCase().includes(term);
-        if (!seedMatch && !charMatch) return false;
+        const challengeMatch = challengeName ? challengeName.toLowerCase().includes(term) : false;
+        const challengeIdMatch = run.challengeId
+          ? `challenge #${run.challengeId}`.toLowerCase().includes(term) ||
+            `#${run.challengeId}`.includes(term)
+          : false;
+
+        if (!seedMatch && !charMatch && !challengeMatch && !challengeIdMatch) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [runs, resultFilter, selectedCharacterId, searchTerm]);
+  }, [runs, resultFilter, modeFilter, selectedCharacterId, searchTerm]);
 
   if (error) {
     return (
@@ -75,6 +91,8 @@ export default function Home() {
       <RunFilters
         resultFilter={resultFilter}
         setResultFilter={setResultFilter}
+        modeFilter={modeFilter}
+        setModeFilter={setModeFilter}
         selectedCharacterId={selectedCharacterId}
         setSelectedCharacterId={setSelectedCharacterId}
         characters={uniqueCharacters}

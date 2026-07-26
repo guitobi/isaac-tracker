@@ -5,6 +5,7 @@ import { ItemIcon } from "../../../components/ItemIcon";
 import { useRun } from "../../../hooks/useRuns";
 import { getBossImageUrl, formatBossName } from "../../lib/bosses";
 import { formatItemName, getBuildRank, getItemQuality, isQuality4Item } from "../../lib/items";
+import { getChallengeName } from "../../lib/challenges";
 
 export default function RunDetailsPage() {
   const params = useParams();
@@ -56,7 +57,7 @@ export default function RunDetailsPage() {
   });
   const q0Items = uniqueItemObjects.filter(i => getItemQuality(i.id, i.quality) === 0);
 
-  // Compute Build Power Score & Rank using getBuildRank
+  const challengeName = getChallengeName(run?.challengeId);
   const buildRankInfo = getBuildRank(
     uniqueItemObjects,
     run?.isVictory,
@@ -84,15 +85,31 @@ export default function RunDetailsPage() {
             <div className="flex justify-between items-start border-b-4 border-black pb-3">
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h1 className="font-hand text-4xl font-extrabold text-black">
-                    {run.character?.name || `Character #${run.characterId}`}
-                  </h1>
+                  {challengeName ? (
+                    <h1 className="font-hand text-4xl font-extrabold text-black">
+                      Challenge #{run.challengeId}
+                    </h1>
+                  ) : (
+                    <h1 className="font-hand text-4xl font-extrabold text-black">
+                      {run.character?.name || `Character #${run.characterId}`}
+                    </h1>
+                  )}
+                  {challengeName && (
+                    <span className="px-2 py-0.5 text-xs font-pixel font-bold bg-[#8b0000] text-white border-2 border-black">
+                      🎯 {challengeName.toUpperCase()}
+                    </span>
+                  )}
                   {run.character?.isTainted && (
                     <span className="px-1.5 py-0.5 text-xs font-pixel font-bold bg-purple-900 text-purple-200 border border-black">
                       TAINTED
                     </span>
                   )}
                 </div>
+                {challengeName && (
+                  <p className="font-pixel text-sm text-gray-700 mt-1">
+                    Character: {run.character?.name || `Character #${run.characterId}`}
+                  </p>
+                )}
                 {run.user?.username && (
                   <p className="font-pixel text-sm text-gray-700 mt-1">
                     Player: {run.user.username}
@@ -107,6 +124,12 @@ export default function RunDetailsPage() {
             </div>
 
             <div className="flex flex-col gap-3 font-pixel text-base">
+              {challengeName && (
+                <div className="flex justify-between border-b border-black/10 pb-1.5">
+                  <span className="text-gray-700">CHALLENGE:</span>
+                  <span className="font-bold text-[#8b0000]">#{run.challengeId} - {challengeName}</span>
+                </div>
+              )}
               <div className="flex justify-between border-b border-black/10 pb-1.5">
                 <span className="text-gray-700">SEED:</span>
                 <span className="font-bold text-black">{run.seed}</span>

@@ -12,7 +12,7 @@ pub fn is_autostart_enabled() -> bool {
             if let Ok(current_exe) = std::env::current_exe() {
                 if let Some(exe_str) = current_exe.to_str() {
                     let formatted = format!("\"{}\"", exe_str);
-                    return path == formatted;
+                    return path.eq_ignore_ascii_case(&formatted) || path.trim_matches('"').eq_ignore_ascii_case(exe_str);
                 }
             }
         }
