@@ -8,7 +8,16 @@ const REPO_NAME: &str = "isaac-tracker";
 pub fn show_info_box(title: &str, message: &str) {
     let safe_message = message.replace("'", "''");
     let safe_title = title.replace("'", "''");
-    let _ = std::process::Command::new("powershell")
+    
+    let mut cmd = std::process::Command::new("powershell");
+    
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    }
+
+    let _ = cmd
         .args([
             "-WindowStyle", "Hidden",
             "-Command",
