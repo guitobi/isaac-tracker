@@ -22,9 +22,10 @@ export class RunsService {
     });
   }
 
-  async findAll() {
+  async findAll(userId: number) {
     const runs = await this.prisma.run.findMany({
       where: {
+        userId,
         OR: [
           { items: { isEmpty: false } },
           { trinkets: { isEmpty: false } },

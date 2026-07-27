@@ -31,8 +31,9 @@ export class RunsController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  findAll(@Req() req: Request & { user: { sub: number } }) {
-    return this.runsService.findAll();
+  findAll(@Req() req: Request & { user: { sub?: number; userId?: number } }) {
+    const userId = req.user.userId ?? req.user.sub!;
+    return this.runsService.findAll(userId);
   }
 
   @UseGuards(AuthGuard('jwt'))

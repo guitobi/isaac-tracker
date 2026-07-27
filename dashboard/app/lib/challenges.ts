@@ -1,7 +1,7 @@
 import challengesData from '../../public/data/challenges.json';
 
 export function getChallengeName(id: number | string | null | undefined): string | null {
-  if (id === null || id === undefined || id === "" || id === false) return null;
+  if (id === null || id === undefined || id === "") return null;
 
   const numId = typeof id === "number" ? id : parseInt(String(id), 10);
   if (isNaN(numId) || numId === 0) return null;
