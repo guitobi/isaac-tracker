@@ -65,6 +65,8 @@ impl ApiClient {
             "causeOfDeath": cause_of_death
         });
 
+
+
         let url = format!("{}/{}", self.base_url, run_id);
         
         let res = self.client.patch(&url)
