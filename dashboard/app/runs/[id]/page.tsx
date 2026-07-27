@@ -1,10 +1,12 @@
 "use client";
 
+import Image from "next/image";
+
 import { useParams, useRouter } from "next/navigation";
 import { ItemIcon } from "../../../components/ItemIcon";
 import { useRun } from "../../../hooks/useRuns";
 import { getBossImageUrl, formatBossName } from "../../lib/bosses";
-import { formatItemName, getBuildRank, getItemQuality, isQuality4Item } from "../../lib/items";
+import { formatItemName, getBuildRank, getItemQuality } from "../../lib/items";
 import { getChallengeName } from "../../lib/challenges";
 
 export default function RunDetailsPage() {
@@ -86,11 +88,11 @@ export default function RunDetailsPage() {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   {challengeName ? (
-                    <h1 className="font-hand text-4xl font-extrabold text-black">
+                    <h1 className="font-pixel text-2xl font-extrabold text-black">
                       Challenge #{run.challengeId}
                     </h1>
                   ) : (
-                    <h1 className="font-hand text-4xl font-extrabold text-black">
+                    <h1 className="font-pixel text-2xl font-extrabold text-black">
                       {run.character?.name || `Character #${run.characterId}`}
                     </h1>
                   )}
@@ -171,7 +173,7 @@ export default function RunDetailsPage() {
 
           {/* Horizontal Stage Roadmap Boss Progression */}
           <section className="isaac-card p-6 col-span-full">
-            <h2 className="font-hand text-4xl font-bold mb-4 border-b-4 border-black pb-2 flex justify-between items-center">
+            <h2 className="font-pixel text-2xl font-bold mb-4 border-b-4 border-black pb-2 flex justify-between items-center">
               <span>Bosses</span>
               <span className="font-pixel text-base text-gray-700">Defeated: {uniqueBosses.length}</span>
             </h2>
@@ -196,9 +198,11 @@ export default function RunDetailsPage() {
 
                         <div className="w-36 h-36 flex items-center justify-center bg-black/10 border-2 border-black/20 rounded-lg p-2 shadow-inner mb-3">
                           {imageUrl ? (
-                            <img
+                            <Image
                               src={imageUrl}
                               alt={boss}
+                              width={144}
+                              height={144}
                               className="w-full h-full object-contain drop-shadow-xl"
                               onError={(e) => {
                                 (e.target as HTMLImageElement).style.display = "none";
@@ -229,7 +233,7 @@ export default function RunDetailsPage() {
                   );
                 })
               ) : (
-                <div className="w-full text-center py-6 font-hand text-2xl text-gray-700">
+                <div className="w-full text-center py-6 font-pixel text-lg text-gray-700">
                   No bosses defeated.
                 </div>
               )}
@@ -241,7 +245,7 @@ export default function RunDetailsPage() {
         <div className="lg:col-span-8 flex flex-col gap-6">
           {/* Зібрані предмети по Категоріях Quality */}
           <section className="isaac-card p-6 flex flex-col gap-6">
-            <h2 className="font-hand text-4xl font-bold border-b-4 border-black pb-2 flex justify-between items-center">
+            <h2 className="font-pixel text-2xl font-bold border-b-4 border-black pb-2 flex justify-between items-center">
               <span>Items Collected</span>
               <span className="font-pixel text-xl text-gray-700">Total: {uniqueItemObjects.length}</span>
             </h2>
@@ -327,7 +331,7 @@ export default function RunDetailsPage() {
             )}
 
             {uniqueItemObjects.length === 0 && (
-              <div className="w-full text-center py-8 font-hand text-3xl text-gray-700">
+              <div className="w-full text-center py-8 font-pixel text-xl text-gray-700">
                 No items collected in this run...
               </div>
             )}
@@ -335,7 +339,7 @@ export default function RunDetailsPage() {
 
           {/* Collected Trinkets */}
           <section className="isaac-card p-6">
-            <h2 className="font-hand text-3xl font-bold mb-4 border-b-4 border-black pb-2">
+            <h2 className="font-pixel text-xl font-bold mb-4 border-b-4 border-black pb-2">
               Trinkets ({uniqueTrinketObjects.length})
             </h2>
 
@@ -356,7 +360,7 @@ export default function RunDetailsPage() {
                   );
                 })
               ) : (
-                <div className="col-span-full text-center py-4 font-hand text-xl text-gray-700">
+                <div className="col-span-full text-center py-4 font-pixel text-sm text-gray-700">
                   No trinkets collected.
                 </div>
               )}

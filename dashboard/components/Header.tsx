@@ -14,7 +14,15 @@ export function Header({ isLoading, runCount }: HeaderProps) {
   const router = useRouter();
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('isaac_token'));
+    let active = true;
+    const check = async () => {
+      await Promise.resolve();
+      if (active) {
+        setIsLoggedIn(!!localStorage.getItem('isaac_token'));
+      }
+    };
+    check();
+    return () => { active = false; };
   }, []);
 
   const handleLogout = () => {
@@ -25,7 +33,7 @@ export function Header({ isLoading, runCount }: HeaderProps) {
 
   return (
     <header className="flex justify-between items-end border-b-4 border-black pb-4 mb-4">
-      <h1 className="font-hand text-6xl font-bold tracking-widest text-[#e3d2b8]" style={{ textShadow: '4px 4px 0 #000' }}>
+      <h1 className="font-pixel text-4xl font-bold tracking-widest text-[#e3d2b8]" style={{ textShadow: '4px 4px 0 #000' }}>
         ISAAC TRACKER
       </h1>
       <div className="flex items-center gap-6">

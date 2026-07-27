@@ -49,7 +49,7 @@ export default function RegisterPage() {
 
       <div className="isaac-card p-10 w-full max-w-md flex flex-col items-center">
         <h1
-          className="font-hand text-5xl font-bold mb-8 text-center"
+          className="font-pixel text-3xl font-bold mb-8 text-center"
           style={{ textShadow: "3px 3px 0 #fff, -1px -1px 0 #fff" }}
         >
           JOIN THE PACT
@@ -60,7 +60,7 @@ export default function RegisterPage() {
           className="w-full flex flex-col gap-6"
         >
           <div className="flex flex-col gap-2">
-            <label className="font-hand text-3xl font-bold">Username:</label>
+            <label className="font-pixel text-xl font-bold">Username:</label>
             <input
               type="text"
               placeholder="e.g. Isaac"
@@ -75,7 +75,7 @@ export default function RegisterPage() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-hand text-3xl font-bold">Password:</label>
+            <label className="font-pixel text-xl font-bold">Password:</label>
             <input
               type="password"
               placeholder="••••••••"
@@ -91,7 +91,7 @@ export default function RegisterPage() {
 
           <button
             type="submit"
-            className="mt-4 w-full py-3 bg-[#c39832] hover:bg-[#a37812] text-white border-4 border-black font-hand text-4xl font-bold shadow-[4px_4px_0_#000] active:translate-y-1 active:shadow-[0px_0px_0_#000] transition-all"
+            className="mt-4 w-full py-3 bg-[#c39832] hover:bg-[#a37812] text-white border-4 border-black font-pixel text-2xl font-bold shadow-[4px_4px_0_#000] active:translate-y-1 active:shadow-[0px_0px_0_#000] transition-all"
           >
             SIGN PACT
           </button>

@@ -62,7 +62,7 @@ function LoginForm() {
 
       <div className="isaac-card p-10 w-full max-w-md flex flex-col items-center">
         <h1
-          className="font-hand text-6xl font-bold mb-8 text-center"
+          className="font-pixel text-4xl font-bold mb-8 text-center"
           style={{ textShadow: "3px 3px 0 #fff, -1px -1px 0 #fff" }}
         >
           ENTER THE BASEMENT
@@ -73,7 +73,7 @@ function LoginForm() {
           className="w-full flex flex-col gap-6"
         >
           <div className="flex flex-col gap-2">
-            <label className="font-hand text-3xl font-bold">Username:</label>
+            <label className="font-pixel text-xl font-bold">Username:</label>
             <input
               type="text"
               placeholder="e.g. Isaac"
@@ -88,7 +88,7 @@ function LoginForm() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label className="font-hand text-3xl font-bold">Password:</label>
+            <label className="font-pixel text-xl font-bold">Password:</label>
             <input
               type="password"
               placeholder="••••••••"
@@ -104,7 +104,7 @@ function LoginForm() {
 
           <button
             type="submit"
-            className="mt-4 w-full py-3 bg-[#8b0000] hover:bg-[#600000] text-white border-4 border-black font-hand text-4xl font-bold shadow-[4px_4px_0_#000] active:translate-y-1 active:shadow-[0px_0px_0_#000] transition-all"
+            className="mt-4 w-full py-3 bg-[#8b0000] hover:bg-[#600000] text-white border-4 border-black font-pixel text-2xl font-bold shadow-[4px_4px_0_#000] active:translate-y-1 active:shadow-[0px_0px_0_#000] transition-all"
           >
             DESCEND
           </button>

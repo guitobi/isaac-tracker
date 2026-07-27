@@ -27,7 +27,7 @@ export function getBuildRank(
   
   // 1. Base Item Power & Quality 0 penalties
   let q4Count = 0;
-  let baseScore = uniqueItems.reduce((sum, item) => {
+  const baseScore = uniqueItems.reduce((sum, item) => {
     const q = getItemQuality(item.id, item.quality);
     if (q === 4) {
       q4Count++;
