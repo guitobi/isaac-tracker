@@ -105,7 +105,7 @@ export default function Home() {
           <RunCard key={run.id} run={run} />
         ))}
         {filteredRuns.length === 0 && !isLoading && (
-          <div className="col-span-full text-center py-12 isaac-card font-hand text-3xl text-black font-bold">
+          <div className="col-span-full text-center py-12 isaac-card font-pixel text-xl text-black font-bold">
             No runs match the selected filters.
           </div>
         )}

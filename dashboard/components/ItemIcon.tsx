@@ -28,7 +28,7 @@ export function ItemIcon({ item }: ItemIconProps) {
             : ""
         }`}
       >
-        <img
+        <Image
           src={imgSrc}
           alt={name}
           width={32}
@@ -40,7 +40,7 @@ export function ItemIcon({ item }: ItemIconProps) {
 
       <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-72 p-3 tooltip-isaac opacity-0 group-hover/item:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
         <div className="flex justify-between items-start mb-1 gap-2">
-          <p className="font-hand text-xl text-isaac-gold font-bold leading-tight">
+          <p className="font-pixel text-base text-isaac-gold font-bold leading-tight">
             {name}
           </p>
           <span

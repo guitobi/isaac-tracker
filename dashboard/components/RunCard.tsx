@@ -37,11 +37,11 @@ export function RunCard({ run }: RunCardProps) {
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 {challengeName ? (
-                  <h3 className="font-hand font-bold text-3xl text-black">
+                  <h3 className="font-pixel font-bold text-xl text-black">
                     Challenge #{run.challengeId}
                   </h3>
                 ) : (
-                  <h3 className="font-hand font-bold text-3xl text-black">
+                  <h3 className="font-pixel font-bold text-xl text-black">
                     {charName}
                   </h3>
                 )}
@@ -108,25 +108,25 @@ export function RunCard({ run }: RunCardProps) {
 
           <div className="grid grid-cols-2 gap-3 mt-4">
             <div className="border-2 border-black p-2 bg-black/10 text-center">
-              <p className="font-hand text-xl font-bold text-black">Time</p>
+              <p className="font-pixel text-base font-bold text-black">Time</p>
               <p className="font-pixel text-lg font-bold text-black">
                 {durationMin}m {durationSec}s
               </p>
             </div>
             <div className="border-2 border-black p-2 bg-black/10 text-center">
-              <p className="font-hand text-xl font-bold text-black">Items</p>
+              <p className="font-pixel text-base font-bold text-black">Items</p>
               <p className="font-pixel text-lg font-bold text-black">
                 {itemsCount}
               </p>
             </div>
             <div className="border-2 border-black p-2 bg-black/10 text-center">
-              <p className="font-hand text-xl font-bold text-black">Trinkets</p>
+              <p className="font-pixel text-base font-bold text-black">Trinkets</p>
               <p className="font-pixel text-lg font-bold text-black">
                 {trinketsCount}
               </p>
             </div>
             <div className="border-2 border-black p-2 bg-black/10 text-center">
-              <p className="font-hand text-xl font-bold text-black">Bosses</p>
+              <p className="font-pixel text-base font-bold text-black">Bosses</p>
               <p className="font-pixel text-lg font-bold text-black">
                 {bossesCount}
               </p>

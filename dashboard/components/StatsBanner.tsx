@@ -11,13 +11,13 @@ export function StatsBanner({ stats }: StatsBannerProps) {
 
   return (
     <div className="isaac-card p-6">
-      <h2 className="font-hand text-4xl font-extrabold mb-4 text-black border-b-4 border-black pb-2">
+      <h2 className="font-pixel text-2xl font-extrabold mb-4 text-black border-b-4 border-black pb-2">
         Player Performance Overview
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center mb-6">
         <div className="border-4 border-black p-3 bg-black/10">
-          <p className="font-hand text-xl font-bold text-black">Win Rate</p>
+          <p className="font-pixel text-base font-bold text-black">Win Rate</p>
           <p className="font-pixel text-3xl font-extrabold text-[#8b0000]">
             {stats.winRate}%
           </p>
@@ -27,7 +27,7 @@ export function StatsBanner({ stats }: StatsBannerProps) {
         </div>
 
         <div className="border-4 border-black p-3 bg-black/10">
-          <p className="font-hand text-xl font-bold text-black">Win Streak</p>
+          <p className="font-pixel text-base font-bold text-black">Win Streak</p>
           <p className="font-pixel text-3xl font-extrabold text-[#c39832]">
             🔥 {stats.winStreak}
           </p>
@@ -35,7 +35,7 @@ export function StatsBanner({ stats }: StatsBannerProps) {
         </div>
 
         <div className="border-4 border-black p-3 bg-black/10">
-          <p className="font-hand text-xl font-bold text-black">Total Runs</p>
+          <p className="font-pixel text-base font-bold text-black">Total Runs</p>
           <p className="font-pixel text-3xl font-extrabold text-black">
             {stats.totalRuns}
           </p>
@@ -43,7 +43,7 @@ export function StatsBanner({ stats }: StatsBannerProps) {
         </div>
 
         <div className="border-4 border-black p-3 bg-black/10">
-          <p className="font-hand text-xl font-bold text-black">Avg Time</p>
+          <p className="font-pixel text-base font-bold text-black">Avg Time</p>
           <p className="font-pixel text-3xl font-extrabold text-blue-900">
             {avgMin}m {avgSec}s
           </p>
@@ -53,7 +53,7 @@ export function StatsBanner({ stats }: StatsBannerProps) {
 
       {stats.topWinningItems.length > 0 && (
         <div className="mt-4 pt-4 border-t-4 border-black">
-          <p className="font-hand text-2xl font-bold mb-3 text-black">
+          <p className="font-pixel text-lg font-bold mb-3 text-black">
             Top Winning Items:
           </p>
           <div className="flex gap-4 flex-wrap items-center">

@@ -16,7 +16,7 @@ export function CharacterStats({
   return (
     <div className="isaac-card p-6">
       <div className="flex justify-between items-center mb-4 border-b-4 border-black pb-2">
-        <h2 className="font-hand text-3xl font-extrabold text-black">
+        <h2 className="font-pixel text-xl font-extrabold text-black">
           Character Performance Matrix
         </h2>
         {selectedCharacterId !== "ALL" && onSelectCharacter && (
@@ -46,7 +46,7 @@ export function CharacterStats({
               }`}
             >
               <div className="flex justify-between items-center mb-2">
-                <span className="font-hand text-xl font-bold text-black truncate max-w-[130px]">
+                <span className="font-pixel text-base font-bold text-black truncate max-w-[130px]">
                   {charName}
                 </span>
                 {isTainted && (
