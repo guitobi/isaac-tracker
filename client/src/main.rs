@@ -77,6 +77,9 @@ async fn perform_reauth(api_client: &mut api::ApiClient, entry: &Result<Entry, k
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    #[cfg(debug_assertions)]
+    dotenvy::from_filename(".env.development").ok();
+    #[cfg(not(debug_assertions))]
     dotenvy::dotenv().ok();
 
     let handle = tokio::runtime::Handle::current();

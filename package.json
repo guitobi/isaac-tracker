@@ -1,0 +1,11 @@
+{
+  "name": "isaac-tracker-workspace",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "dev:dashboard": "cd dashboard && npm run dev",
+    "dev:client": "cd client && cargo run",
+    "dev": "npx concurrently \"npm run dev:server\" \"npm run dev:dashboard\" \"npm run dev:client\"",
+    "build:client": "cd client && cargo build --release"
+  }
+}
