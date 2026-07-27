@@ -5,14 +5,11 @@ mod auth;
 mod autostart;
 mod update;
 
-use linemux::MuxedLines;
 use regex::Regex;
 use tray_item::{IconSource, TrayItem};
 use keyring::Entry;
 
 use crate::autostart::{is_autostart_enabled, set_autostart};
-
-
 
 fn get_isaac_log_path() -> std::path::PathBuf {
     if let Ok(env_path) = std::env::var("ISAAC_LOG_PATH") {
@@ -37,11 +34,12 @@ fn get_isaac_log_path() -> std::path::PathBuf {
         .or_else(|_| std::env::var("HOME"))
         .unwrap_or_else(|_| "C:/Users/Default".to_string());
 
-    candidates.push(std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile)));
-    candidates.push(std::path::PathBuf::from(format!("{}/OneDrive/Documents/My Games/Binding of Isaac Repentance+/log.txt", user_profile)));
-    candidates.push(std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Repentance/log.txt", user_profile)));
-    candidates.push(std::path::PathBuf::from(format!("{}/OneDrive/Documents/My Games/Binding of Isaac Repentance/log.txt", user_profile)));
-    candidates.push(std::path::PathBuf::from(format!("{}/Documents/My Games/Binding of Isaac Afterbirth+/log.txt", user_profile)));
+    let user_profile_path = std::path::PathBuf::from(user_profile);
+    candidates.push(user_profile_path.join("Documents").join("My Games").join("Binding of Isaac Repentance+").join("log.txt"));
+    candidates.push(user_profile_path.join("OneDrive").join("Documents").join("My Games").join("Binding of Isaac Repentance+").join("log.txt"));
+    candidates.push(user_profile_path.join("Documents").join("My Games").join("Binding of Isaac Repentance").join("log.txt"));
+    candidates.push(user_profile_path.join("OneDrive").join("Documents").join("My Games").join("Binding of Isaac Repentance").join("log.txt"));
+    candidates.push(user_profile_path.join("Documents").join("My Games").join("Binding of Isaac Afterbirth+").join("log.txt"));
 
     for candidate in &candidates {
         if candidate.exists() {
@@ -150,7 +148,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let path = get_isaac_log_path();
 
-    let mut lines = MuxedLines::new()?;
+
 
     let regex_seed = Regex::new(r"RNG Start Seed: ([a-zA-Z0-9 ]+)").unwrap();
     let regex_player = Regex::new(r"(?:Subtype\s+|Subtype\()\s*(\d+)").unwrap();
@@ -170,7 +168,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    lines.add_file(&path).await?;
+    let (tx, mut rx) = tokio::sync::mpsc::channel(100);
+    let tail_path = path.clone();
+    tokio::spawn(async move {
+        use std::io::{Seek, SeekFrom, BufRead};
+        let mut pos = 0;
+        if let Ok(file) = std::fs::File::open(&tail_path) {
+            pos = file.metadata().map(|m| m.len()).unwrap_or(0);
+        }
+        
+        loop {
+            tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+            if let Ok(mut file) = std::fs::File::open(&tail_path) {
+                let current_len = file.metadata().map(|m| m.len()).unwrap_or(pos);
+                if current_len < pos {
+                    pos = 0; // File was truncated
+                }
+                
+                if current_len > pos {
+                    if let Ok(_) = file.seek(SeekFrom::Start(pos)) {
+                        let mut reader = std::io::BufReader::new(file);
+                        let mut line = String::new();
+                        while let Ok(bytes_read) = reader.read_line(&mut line) {
+                            if bytes_read == 0 { break; } // EOF
+                            
+                            if line.ends_with('\n') {
+                                let trimmed = line.trim_end_matches(|c| c == '\r' || c == '\n').to_string();
+                                if tx.send(trimmed).await.is_err() {
+                                    return; // Receiver dropped
+                                }
+                                pos += bytes_read as u64;
+                                line.clear();
+                            } else {
+                                break; // Incomplete line, wait for more data
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
 
     println!("Tracker is running! Waiting for new lines...");
 
@@ -295,8 +332,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    while let Ok(Some(line)) = lines.next_line().await {
-        println!("{}", line.line());
+    while let Some(line_str) = rx.recv().await {
+        println!("{}", line_str);
+        
+        // Mock a line struct to minimize diff changes below
+        struct DummyLine { pub content: String }
+        impl DummyLine { pub fn line(&self) -> &str { &self.content } }
+        let line = DummyLine { content: line_str };
 
         if let Some(captures) = challenge_regex.captures(line.line()) {
             if let Ok(cid) = captures[1].parse::<i32>() {
