@@ -6,6 +6,12 @@ export interface ItemInfo {
   quality?: number;
 }
 
+export interface RunEvent {
+  event_type: string;
+  data: string;
+  timestamp: number;
+}
+
 export interface CharacterInfo {
   id: number;
   name: string;
@@ -34,4 +40,5 @@ export interface Run {
   deathStage?: string;
   causeOfDeath?: string;
   challengeId?: number;
+  timeline?: RunEvent[];
 }

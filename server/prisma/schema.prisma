@@ -20,7 +20,7 @@ model User {
 }
 
 model Character {
-  id        Int     @id 
+  id        Int     @id
   name      String  @unique
   isTainted Boolean @default(false)
   runs      Run[]
@@ -43,6 +43,7 @@ model Run {
   character   Character @relation(fields: [characterId], references: [id])
   challengeId Int?
   challengeName String?
+  timeline      Json[] @default([])
 }
 
 model Item {
