@@ -51,31 +51,52 @@ export function StatsBanner({ stats }: StatsBannerProps) {
         </div>
       </div>
 
-      {stats.topWinningItems.length > 0 && (
-        <div className="mt-4 pt-4 border-t-4 border-black">
-          <p className="font-pixel text-lg font-bold mb-3 text-black">
-            Top Winning Items:
-          </p>
-          <div className="flex gap-4 flex-wrap items-center">
-            {stats.topWinningItems.map(({ item, count }) => (
-              <div
-                key={`top-win-item-${item.id}`}
-                className="flex items-center gap-2 border-2 border-black p-2 bg-black/10 rounded"
-              >
-                <ItemIcon item={item} />
-                <div className="text-left">
-                  <p className="font-pixel text-xs font-bold text-black max-w-[100px] truncate">
-                    {item.name}
-                  </p>
-                  <p className="font-pixel text-xs font-bold text-[#8b0000]">
-                    {count} wins
-                  </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 pt-4 border-t-4 border-black">
+        {stats.topWinningItems.length > 0 && (
+          <div>
+            <p className="font-pixel text-lg font-bold mb-3 text-black">
+              Top Winning Items:
+            </p>
+            <div className="flex gap-4 flex-wrap items-center">
+              {stats.topWinningItems.map(({ item, count }) => (
+                <div
+                  key={`top-win-item-${item.id}`}
+                  className="flex items-center gap-2 border-2 border-black p-2 bg-black/10 rounded"
+                >
+                  <ItemIcon item={item} />
+                  <div className="text-left">
+                    <p className="font-pixel text-xs font-bold text-black max-w-[100px] truncate">
+                      {item.name}
+                    </p>
+                    <p className="font-pixel text-xs font-bold text-[#8b0000]">
+                      {count} wins
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {stats.nemesis && (
+          <div>
+            <p className="font-pixel text-lg font-bold mb-3 text-[#8b0000] drop-shadow-md">
+              Your Nemesis:
+            </p>
+            <div className="flex items-center gap-4 border-4 border-[#8b0000] p-4 bg-[#8b0000]/10 shadow-[4px_4px_0_#8b0000]">
+              <div className="font-pixel text-4xl animate-pulse">☠️</div>
+              <div>
+                <p className="font-pixel text-xl font-extrabold text-black uppercase">
+                  {stats.nemesis.name}
+                </p>
+                <p className="font-pixel text-sm font-bold text-[#8b0000] mt-1">
+                  Killed you {stats.nemesis.count} times
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
