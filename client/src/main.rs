@@ -208,7 +208,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let regex_seed = Regex::new(r"RNG Start Seed: ([a-zA-Z0-9 ]+)").unwrap();
     let regex_player = Regex::new(r"(?:Subtype\s+|Subtype\()\s*(\d+)").unwrap();
-    let regex_death = Regex::new(r"Game Over").unwrap();
+    let regex_death = Regex::new(r"Game Over\. Killed by \(([\d.]+)\)").unwrap();
     let item_regex = Regex::new(r"Adding collectible (\d+)").unwrap();
     let trinket_regex = Regex::new(r"Adding trinket (\d+)").unwrap();
     let regex_boss_room = Regex::new(r"Room 5\.\d+\((.+?)\)").unwrap();
@@ -678,7 +678,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
 
-        if regex_death.is_match(line.line()) {
+        if let Some(caps) = regex_death.captures(line.line()) {
+            current_cause_of_death = caps.get(1).map(|m| m.as_str().trim().to_string());
             let target_run_id = match current_run_id {
                 Some(id) => Some(id),
                 None => {

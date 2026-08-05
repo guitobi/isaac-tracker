@@ -8,6 +8,7 @@ export interface DashboardStats {
   winStreak: number;
   avgDurationSec: number;
   topWinningItems: { item: ItemInfo; count: number }[];
+  nemesis: { name: string; count: number } | null;
 }
 
 export interface CharacterStats {
@@ -30,6 +31,7 @@ export function calculateDashboardStats(runs: Run[]): DashboardStats {
       winStreak: 0,
       avgDurationSec: 0,
       topWinningItems: [],
+      nemesis: null,
     };
   }
 
@@ -76,6 +78,27 @@ export function calculateDashboardStats(runs: Run[]): DashboardStats {
     .sort((a, b) => b.count - a.count)
     .slice(0, 5);
 
+  const deathCounts = new Map<string, number>();
+  for (const run of runs) {
+    if (!run.isVictory && run.causeOfDeath) {
+      const cause = run.causeOfDeath.toUpperCase();
+      deathCounts.set(cause, (deathCounts.get(cause) || 0) + 1);
+    }
+  }
+
+  let nemesis = null;
+  if (deathCounts.size > 0) {
+    let maxCount = 0;
+    let maxCause = "";
+    for (const [cause, count] of deathCounts.entries()) {
+      if (count > maxCount) {
+        maxCount = count;
+        maxCause = cause;
+      }
+    }
+    nemesis = { name: maxCause, count: maxCount };
+  }
+
   return {
     totalRuns,
     victories,
@@ -84,6 +107,7 @@ export function calculateDashboardStats(runs: Run[]): DashboardStats {
     winStreak,
     avgDurationSec,
     topWinningItems,
+    nemesis,
   };
 }
 

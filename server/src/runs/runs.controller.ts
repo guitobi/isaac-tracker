@@ -40,7 +40,7 @@ export class RunsController {
   @Get(':id')
   findOne(
     @Param('id') id: string,
-    @Req() req: Request & { user: { sub: number } }
+    @Req() req: Request & { user: { sub: number } },
   ) {
     return this.runsService.findOne(+id);
   }
