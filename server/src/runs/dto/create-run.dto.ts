@@ -8,4 +8,5 @@ export class CreateRunDto {
   causeOfDeath?: string;
   challengeId?: number;
   challengeName?: string;
+  timeline?: object[];
 }

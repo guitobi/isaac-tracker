@@ -22,7 +22,7 @@ export class LogReaderService implements OnModuleInit {
     const tail = new Tail(logPath, { useWatchFile: true });
 
     tail.on('line', (data: string) => {
-      console.log('Новий рядок з гри:', data);
+      console.log('New line from game:', data);
 
       const seedRegex = /RNG Start Seed: ([A-Z0-9]{4} [A-Z0-9]{4})/;
       const playerRegex =
@@ -87,17 +87,17 @@ export class LogReaderService implements OnModuleInit {
               this.currentSeed = null;
               this.currentRunId = run.id;
               this.currentRunStartTime = Date.now();
-              console.log('🎮 Забіг успішно збережено в БД!');
+              console.log('🎮 Run successfully saved to DB!');
             })
             .catch((error) => {
-              console.error('Помилка при створенні забігу:', error);
+              console.error('Error creating run:', error);
             });
         }
       }
     });
 
     tail.on('error', (error) => {
-      console.error('Помилка читання логу:', error);
+      console.error('Error reading log:', error);
     });
   }
 }
