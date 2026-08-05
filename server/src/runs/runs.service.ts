@@ -54,7 +54,9 @@ export class RunsService {
     return runs.map((run) => ({
       ...run,
       itemObjects: run.items.map((id) => itemsMap.get(id)).filter(Boolean),
-      trinketObjects: run.trinkets.map((id) => trinketsMap.get(id)).filter(Boolean),
+      trinketObjects: run.trinkets
+        .map((id) => trinketsMap.get(id))
+        .filter(Boolean),
     }));
   }
 
@@ -91,9 +93,15 @@ export class RunsService {
   }
 
   async update(id: number, updateRunDto: UpdateRunDto) {
-    const items = updateRunDto.items ? Array.from(new Set(updateRunDto.items)) : [];
-    const trinkets = updateRunDto.trinkets ? Array.from(new Set(updateRunDto.trinkets)) : [];
-    const bosses = updateRunDto.bosses ? Array.from(new Set(updateRunDto.bosses)) : undefined;
+    const items = updateRunDto.items
+      ? Array.from(new Set(updateRunDto.items))
+      : [];
+    const trinkets = updateRunDto.trinkets
+      ? Array.from(new Set(updateRunDto.trinkets))
+      : [];
+    const bosses = updateRunDto.bosses
+      ? Array.from(new Set(updateRunDto.bosses))
+      : undefined;
     const isVictory = updateRunDto.isVictory ?? false;
 
     // Discard run if ended without picking up any items or trinkets

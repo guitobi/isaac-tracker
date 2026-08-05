@@ -38,10 +38,7 @@ export class RunsController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get(':id')
-  findOne(
-    @Param('id') id: string,
-    @Req() req: Request & { user: { sub: number } },
-  ) {
+  findOne(@Param('id') id: string) {
     return this.runsService.findOne(+id);
   }
 

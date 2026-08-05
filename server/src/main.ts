@@ -17,4 +17,7 @@ async function bootstrap() {
   // Keep event loop active in Docker container
   setInterval(() => {}, 60000);
 }
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('Error starting server', err);
+  process.exit(1);
+});
