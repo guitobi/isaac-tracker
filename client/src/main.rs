@@ -444,6 +444,26 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("[INFO] Stage loaded: {}", stage);
             current_death_stage = Some(stage.clone());
 
+            // If we change stages and still have a pending boss, assume it was defeated
+            // (e.g., Mom, Mom's Heart, Hush, or bosses where we missed deathspawn_boss)
+            if let Some(boss_name) = current_room_boss.take() {
+                println!("[INFO] Stage changed, assuming pending boss was defeated: {}", boss_name);
+                if !current_bosses.contains(&boss_name) {
+                    current_bosses.push(boss_name.clone());
+                    current_final_boss = Some(boss_name.clone());
+                    
+                    let elapsed = current_run_start_time
+                        .map(|t| t.elapsed().as_secs())
+                        .unwrap_or(0);
+                    
+                    current_timeline.push(api::RunEvent {
+                        event_type: "BOSS".to_string(),
+                        data: boss_name,
+                        timestamp: elapsed,
+                    });
+                }
+            }
+
             let elapsed = current_run_start_time
                 .map(|t| t.elapsed().as_secs())
                 .unwrap_or(0);
@@ -516,6 +536,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         if victory_regex.is_match(line.line()) {
             println!("[INFO] Victory condition detected in log!");
             current_is_victory = true;
+            
+            // If we won and still have a pending boss, it must be the final boss we just defeated
+            if let Some(boss_name) = current_room_boss.take() {
+                println!("[INFO] Victory achieved, assuming final boss was defeated: {}", boss_name);
+                if !current_bosses.contains(&boss_name) {
+                    current_bosses.push(boss_name.clone());
+                    current_final_boss = Some(boss_name.clone());
+                    
+                    let elapsed = current_run_start_time
+                        .map(|t| t.elapsed().as_secs())
+                        .unwrap_or(0);
+                    
+                    current_timeline.push(api::RunEvent {
+                        event_type: "BOSS".to_string(),
+                        data: boss_name,
+                        timestamp: elapsed,
+                    });
+                }
+            }
 
             if let Some(run_id) = current_run_id {
                 let duration = current_run_start_time
@@ -680,6 +719,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         if let Some(caps) = regex_death.captures(line.line()) {
             current_cause_of_death = caps.get(1).map(|m| m.as_str().trim().to_string());
+            current_room_boss = None; // clear pending boss on death
+            
             let target_run_id = match current_run_id {
                 Some(id) => Some(id),
                 None => {
