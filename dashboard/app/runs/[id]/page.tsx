@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { ItemIcon } from "../../../components/ItemIcon";
 import { useRun } from "../../../hooks/useRuns";
-import { getBossImageUrl, formatBossName } from "../../lib/bosses";
+import { getBossImageUrl, formatBossName, getCauseOfDeathInfo } from "../../lib/bosses";
 import { formatItemName, getBuildRank, getItemQuality } from "../../lib/items";
 import { getChallengeName } from "../../lib/challenges";
 import { useState } from "react";
@@ -175,16 +175,23 @@ export default function RunDetailsPage() {
                 <span>DEFEATED: {run.finalBoss || "Completed"}</span>
               </div>
             )}
-            {!run.isVictory && (run.deathStage || run.causeOfDeath) && (
-              <div className="mt-2 flex items-center gap-2 p-3 bg-[#8b0000]/20 border-2 border-[#8b0000] rounded text-sm font-pixel font-bold text-[#8b0000]">
-                <span>☠️</span>
-                <span>
-                  {run.causeOfDeath
-                    ? `KILLED BY ${run.causeOfDeath.toUpperCase()} ON ${run.deathStage?.toUpperCase() || "UNKNOWN"}`
-                    : `DIED ON: ${run.deathStage?.toUpperCase()}`}
-                </span>
-              </div>
-            )}
+            {!run.isVictory && (run.deathStage || run.causeOfDeath) && (() => {
+              const causeInfo = run.causeOfDeath ? getCauseOfDeathInfo(run.causeOfDeath) : null;
+              return (
+                <div className="mt-2 flex items-center gap-2 p-3 bg-[#8b0000]/20 border-2 border-[#8b0000] rounded text-sm font-pixel font-bold text-[#8b0000]">
+                  {causeInfo?.imageUrl ? (
+                    <img src={causeInfo.imageUrl} alt={causeInfo.name} className="w-6 h-6 object-contain pixelated" />
+                  ) : (
+                    <span>☠️</span>
+                  )}
+                  <span>
+                    {run.causeOfDeath
+                      ? `KILLED BY ${causeInfo?.name.toUpperCase()} ON ${run.deathStage?.toUpperCase() || "UNKNOWN"}`
+                      : `DIED ON: ${run.deathStage?.toUpperCase()}`}
+                  </span>
+                </div>
+              );
+            })()}
           </header>
 
           {/* Horizontal Stage Roadmap Boss Progression */}

@@ -1,5 +1,6 @@
 import { DashboardStats } from '../app/lib/stats';
 import { ItemIcon } from './ItemIcon';
+import { getCauseOfDeathInfo } from '../app/lib/bosses';
 
 interface StatsBannerProps {
   stats: DashboardStats;
@@ -78,24 +79,33 @@ export function StatsBanner({ stats }: StatsBannerProps) {
           </div>
         )}
 
-        {stats.nemesis && (
-          <div>
-            <p className="font-pixel text-lg font-bold mb-3 text-[#8b0000] drop-shadow-md">
-              Your Nemesis:
-            </p>
-            <div className="flex items-center gap-4 border-4 border-[#8b0000] p-4 bg-[#8b0000]/10 shadow-[4px_4px_0_#8b0000]">
-              <div className="font-pixel text-4xl animate-pulse">☠️</div>
-              <div>
-                <p className="font-pixel text-xl font-extrabold text-black uppercase">
-                  {stats.nemesis.name}
-                </p>
-                <p className="font-pixel text-sm font-bold text-[#8b0000] mt-1">
-                  Killed you {stats.nemesis.count} times
-                </p>
+        {stats.nemesis && (() => {
+          const nemesisInfo = getCauseOfDeathInfo(stats.nemesis.name);
+          return (
+            <div>
+              <p className="font-pixel text-lg font-bold mb-3 text-[#8b0000] drop-shadow-md">
+                Your Nemesis:
+              </p>
+              <div className="flex items-center gap-4 border-4 border-[#8b0000] p-4 bg-[#8b0000]/10 shadow-[4px_4px_0_#8b0000]">
+                {nemesisInfo.imageUrl ? (
+                  <div className="relative w-16 h-16 shrink-0 filter drop-shadow-[0_0_8px_rgba(139,0,0,0.8)]">
+                    <img src={nemesisInfo.imageUrl} alt={nemesisInfo.name} className="w-full h-full object-contain pixelated animate-pulse" />
+                  </div>
+                ) : (
+                  <div className="font-pixel text-4xl animate-pulse">☠️</div>
+                )}
+                <div>
+                  <p className="font-pixel text-xl font-extrabold text-black uppercase">
+                    {nemesisInfo.name}
+                  </p>
+                  <p className="font-pixel text-sm font-bold text-[#8b0000] mt-1">
+                    Killed you {stats.nemesis.count} times
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import { Run } from "../types";
 import Link from "next/link";
 import { getBuildRank, isQuality4Item } from "../app/lib/items";
 import { getChallengeName } from "../app/lib/challenges";
+import { getCauseOfDeathInfo } from "../app/lib/bosses";
 
 interface RunCardProps {
   run: Run;
@@ -78,16 +79,23 @@ export function RunCard({ run }: RunCardProps) {
                   <span>Defeated: {run.finalBoss}</span>
                 </div>
               )}
-              {!run.isVictory && (run.deathStage || run.causeOfDeath) && (
-                <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-[#8b0000]/10 border-2 border-[#8b0000] rounded text-xs font-pixel font-bold text-[#8b0000]">
-                  <span>☠️</span>
-                  <span>
-                    {run.causeOfDeath
-                      ? `Killed by ${run.causeOfDeath} on ${run.deathStage || "Unknown"}`
-                      : `Died on: ${run.deathStage}`}
-                  </span>
-                </div>
-              )}
+              {!run.isVictory && (run.deathStage || run.causeOfDeath) && (() => {
+                const causeInfo = run.causeOfDeath ? getCauseOfDeathInfo(run.causeOfDeath) : null;
+                return (
+                  <div className="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-[#8b0000]/10 border-2 border-[#8b0000] rounded text-xs font-pixel font-bold text-[#8b0000]">
+                    {causeInfo?.imageUrl ? (
+                      <img src={causeInfo.imageUrl} alt={causeInfo.name} className="w-4 h-4 object-contain pixelated" />
+                    ) : (
+                      <span>☠️</span>
+                    )}
+                    <span>
+                      {run.causeOfDeath
+                        ? `Killed by ${causeInfo?.name} on ${run.deathStage || "Unknown"}`
+                        : `Died on: ${run.deathStage}`}
+                    </span>
+                  </div>
+                );
+              })()}
               {run.itemObjects && run.itemObjects.some((i) => isQuality4Item(i.id, i.quality)) && (
                 <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 bg-[#c39832] text-black border-2 border-black font-pixel text-xs font-bold shadow-[2px_2px_0_rgba(0,0,0,1)]">
                   <span>⭐</span>

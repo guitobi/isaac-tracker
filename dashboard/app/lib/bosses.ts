@@ -74,3 +74,27 @@ export function getBossImageUrl(bossName: string): string {
   // Guaranteed fallback so an image is ALWAYS present
   return "/bosses/1.png";
 }
+
+export function getCauseOfDeathInfo(cause: string): { name: string; imageUrl: string | null } {
+  if (!cause) return { name: "Unknown", imageUrl: null };
+
+  const trimmed = cause.trim();
+
+  // If the cause is a numeric string like "10.0" or "10"
+  if (/^\d+(\.\d+)?$/.test(trimmed)) {
+    const parts = trimmed.split('.');
+    const entityId = parts[0];
+    
+    const bossRecord = bossesData as Record<string, string>;
+    if (bossRecord[entityId]) {
+      return {
+        name: bossRecord[entityId],
+        imageUrl: `/bosses/${entityId}.png`
+      };
+    }
+    
+    return { name: `Entity ${trimmed}`, imageUrl: null };
+  }
+
+  return { name: trimmed, imageUrl: null };
+}
